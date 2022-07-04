@@ -14,7 +14,15 @@ add_subdirectory(ext/nanogui)
 # For reliability of parallel build, make the NanoGUI targets dependencies
 set_property(TARGET glfw glfw_objects nanogui PROPERTY FOLDER "dependencies")
 
+include_directories(
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+
 add_executable(${PROJECT_NAME}
+    # headers
+    include/common.h
+
+    # sources
     src/main.cpp
 )
 

@@ -1,0 +1,6 @@
+#pragma once
+
+#define PI 3.1415926535
+#define TWO_PI 6.283185307
+#define INV_PI 0.31830988618
+#define INV_TWO_PI 0.15915494309
