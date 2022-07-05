@@ -21,9 +21,11 @@ include_directories(
 add_executable(${PROJECT_NAME}
     # headers
     include/common.h
+    include/application.h
 
     # sources
     src/main.cpp
+    src/application.cpp
 )
 
 target_link_libraries(${PROJECT_NAME} nanogui)
