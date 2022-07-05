@@ -1,14 +1,10 @@
 #define STB_IMAGE_STATIC
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
-#include <application.h>
+#include "application.h"
 
-int sample_num = 16;
-material_enum material = DIFFUSE;
-sample_way_enum sample_way = UNIFORM;
-float roughness = 0.5;
-accel_structure_enum accel_structure = ACCEL_NONE;
-filter_type_enum filter_type = FILTER_NONE;
+
+Config config(BOX, 16, DIFFUSE, UNIFORM, 0.5, ACCEL_NONE, FILTER_NONE);
 
 
 handleType GLTexture::load(const std::string& fileName) {
@@ -49,57 +45,49 @@ Application::Application() : nanogui::Screen(nanogui::Vector2i(SCREEN_WIDTH + FO
     setting->setFixedWidth(FORM_WIDTH);
 
     form->addGroup("Rendering Settings");
-    auto vSampleNum = form->addVariable("Sample Number", sample_num);
+    auto vScene = form->addVariable("Scene", config.scene);
+    vScene->setFixedWidth(VALUE_WIDTH);
+    vScene->setItems({"Cornell Box", "Stanford Bunny"});
+
+    auto vSampleNum = form->addVariable("Sample Number", config.sampleNum);
     vSampleNum->setFixedWidth(VALUE_WIDTH);
     vSampleNum->setSpinnable(true);
     vSampleNum->setFormat("[1-9][0-9]*");
     vSampleNum->setMinMaxValues(1, 256);
 
-    auto vMaterial = form->addVariable("Material", material, true);
+    auto vMaterial = form->addVariable("Material", config.material, true);
     vMaterial->setFixedWidth(VALUE_WIDTH);
-    vMaterial->setItems({
-                                "Diffuse",
-                                "Microfacet"
-                        });
+    vMaterial->setItems({"Diffuse", "Microfacet"});
 
-    auto vSampleWay = form->addVariable("Sample Way", sample_way, true);
+    auto vSampleWay = form->addVariable("Sample Way", config.sampleWay, true);
     vSampleWay->setFixedWidth(VALUE_WIDTH);
-    vSampleWay->setItems({
-                                 "Uniform",
-                                 "Cosine"
-                         });
+    vSampleWay->setItems({"Uniform", "Cosine"});
 
-    auto vRoughness = form->addVariable("Roughness", roughness, false);
+    auto vRoughness = form->addVariable("Roughness", config.roughness, false);
     vRoughness->setFixedWidth(VALUE_WIDTH);
     vRoughness->setSpinnable(true);
     vRoughness->setMinMaxValues(0.0, 1.0);
     vRoughness->setValueIncrement(0.1);
 
     form->addGroup("Optimization Settings");
-    auto vAccelStructure = form->addVariable("Accel Structure", accel_structure, true);
+    auto vAccelStructure = form->addVariable("Accel Structure", config.accelStructure, true);
     vAccelStructure->setFixedWidth(VALUE_WIDTH);
-    vAccelStructure->setItems({
-                                      "None",
-                                      "BVH",
-                                      "SAH"
-                              });
+    vAccelStructure->setItems({"None", "BVH", "SAH"});
 
-    auto vFilterType = form->addVariable("Filter Type", filter_type, true);
+    auto vFilterType = form->addVariable("Filter Type", config.filterType, true);
     vFilterType->setFixedWidth(VALUE_WIDTH);
-    vFilterType->setItems({
-                                  "None",
-                                  "Gauss",
-                                  "Bilateral",
-                                  "Joint"
-                          });
+    vFilterType->setItems({"None", "Gauss", "Bilateral", "Joint"});
 
-    form->addButton("Start", [this]() {
-        cout << "Sample Number: " << sample_num << endl
-             << "Material: " << material << endl
-             << "Sample Way: " << sample_way << endl
-             << "Roughness: " << roughness << endl
-             << "Accel Structure: " << accel_structure << endl
-             << "Filter Type: " << filter_type << endl;
+    start = form->addButton("Start", [this]() {
+        start->setEnabled(false);
+        cout << "======== Render Settings ========" << endl
+             << "Scene: " << config.scene << endl
+             << "Sample Number: " << config.sampleNum << endl
+             << "Material: " << config.material << endl
+             << "Sample Way: " << config.sampleWay << endl
+             << "Roughness: " << config.roughness << endl
+             << "Accel Structure: " << config.accelStructure << endl
+             << "Filter Type: " << config.filterType << endl;
         showPicture();
     });
 

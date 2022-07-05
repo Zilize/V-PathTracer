@@ -1,6 +1,6 @@
 #include <nanogui/nanogui.h>
-#include <common.h>
-#include <application.h>
+#include "common.h"
+#include "application.h"
 
 nanogui::ref<Application> app;
 

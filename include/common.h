@@ -19,6 +19,11 @@
 using std::cout;
 using std::endl;
 
+enum scene_enum {
+    BOX = 0,
+    BUNNY
+};
+
 enum material_enum {
     DIFFUSE = 0,
     MICROFACET
@@ -42,4 +47,19 @@ enum filter_type_enum {
     JOINT
 };
 
-#endif
+typedef struct Config {
+    scene_enum scene;
+    int sampleNum;
+    material_enum material;
+    sample_way_enum sampleWay;
+    float roughness;
+    accel_structure_enum accelStructure;
+    filter_type_enum filterType;
+
+    Config(scene_enum _scene, int _sampleNum, material_enum _material, sample_way_enum _sampleWay, float _roughness,
+           accel_structure_enum _accelStructure, filter_type_enum _filterType):
+           scene(_scene), sampleNum(_sampleNum), material(_material), sampleWay(_sampleWay), roughness(_roughness),
+           accelStructure(_accelStructure), filterType(_filterType) {}
+}Config;
+
+#endif //VPATHTRACER_COMMON_H

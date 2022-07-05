@@ -22,10 +22,12 @@ add_executable(${PROJECT_NAME}
     # headers
     include/common.h
     include/application.h
+    include/renderer.h
 
     # sources
     src/main.cpp
     src/application.cpp
+    src/renderer.cpp
 )
 
 target_link_libraries(${PROJECT_NAME} nanogui)

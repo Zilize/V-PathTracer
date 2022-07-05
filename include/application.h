@@ -2,7 +2,7 @@
 #define VPATHTRACER_APPLICATION_H
 
 #include <nanogui/nanogui.h>
-#include <common.h>
+#include "common.h"
 
 using handleType = std::unique_ptr<uint8_t[], void(*)(void*)>;
 
@@ -52,6 +52,7 @@ public:
     void showPicture();
 
 private:
+    nanogui::Button *start;
     nanogui::Window *image;
     nanogui::ImageView *imageView;
     std::vector<std::pair<int, std::string>> framebuffers;
