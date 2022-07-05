@@ -13,8 +13,9 @@ public:
     }
 
     void run();
-    void render(double bbb);
-    void dump();
+    void render();
+    void dumpFile();
+    uint8_t *dumpData();
 
 private:
     Config *config;

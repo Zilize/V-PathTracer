@@ -7,8 +7,7 @@
 
 Config config(BOX, 16, DIFFUSE, UNIFORM, 0.5, ACCEL_NONE, FILTER_NONE, GBUFFER_NONE);
 
-
-handleType GLTexture::load(const std::string& fileName) {
+handleType GLTexture::load_file(const std::string& fileName) {
     if (mTextureId) {
         glDeleteTextures(1, &mTextureId);
         mTextureId = 0;
@@ -20,15 +19,28 @@ handleType GLTexture::load(const std::string& fileName) {
         throw std::invalid_argument("Could not load texture data from file " + fileName);
     glGenTextures(1, &mTextureId);
     glBindTexture(GL_TEXTURE_2D, mTextureId);
-    GLint internalFormat;
-    GLint format;
-    switch (n) {
-        case 1: internalFormat = GL_R8; format = GL_RED; break;
-        case 2: internalFormat = GL_RG8; format = GL_RG; break;
-        case 3: internalFormat = GL_RGB8; format = GL_RGB; break;
-        case 4: internalFormat = GL_RGBA8; format = GL_RGBA; break;
-        default: internalFormat = 0; format = 0; break;
+    GLint internalFormat = GL_RGB8;
+    GLint format = GL_RGB;
+    glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, w, h, 0, format, GL_UNSIGNED_BYTE, textureData.get());
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    return textureData;
+}
+
+handleType GLTexture::load_data(uint8_t *data, int w, int h) {
+    if (mTextureId) {
+        glDeleteTextures(1, &mTextureId);
+        mTextureId = 0;
     }
+    handleType textureData(data, stbi_image_free);
+    if (!textureData)
+        throw std::invalid_argument("Could not load texture from data");
+    glGenTextures(1, &mTextureId);
+    glBindTexture(GL_TEXTURE_2D, mTextureId);
+    GLint internalFormat = GL_RGB8;
+    GLint format = GL_RGB;
     glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, w, h, 0, format, GL_UNSIGNED_BYTE, textureData.get());
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -95,7 +107,6 @@ Application::Application() : nanogui::Screen(nanogui::Vector2i(SCREEN_WIDTH + FO
              << "Accel Structure: " << config.accelStructure << endl
              << "Filter Type: " << config.filterType << endl
              << "G-Buffer: " << config.gBuffer << endl;
-//        showPicture();
         Renderer renderer(&config, this);
         renderer.run();
     });
@@ -107,17 +118,28 @@ Application::Application() : nanogui::Screen(nanogui::Vector2i(SCREEN_WIDTH + FO
     image->setFixedWidth(SCREEN_WIDTH + PAD_WIDTH);
     image->setFixedHeight(SCREEN_HEIGHT + PAD_HEIGHT);
 
-    showPicture();
+    showInit();
 }
 
-void Application::showPicture() {
+void Application::showInit() {
     using namespace nanogui;
 
     if(image->childCount()) image->removeChild(0);
 
-    framebuffers = loadImageDirectory(mNVGContext, "../cache");
-    mImageTexture = new GLTexture(framebuffers[0].second);
-    mImageTexture->load(framebuffers[0].second + ".png");
+    mImageTexture = new GLTexture("../cache/init");
+    mImageTexture->load_file("../cache/init.png");
+    imageView = new ImageView(image, mImageTexture->texture());
+
+    performLayout();
+}
+
+void Application::showFramebuffer(uint8_t *data, int width, int height) {
+    using namespace nanogui;
+
+    if(image->childCount()) image->removeChild(0);
+
+    mImageTexture = new GLTexture("framebuffer");
+    mImageTexture->load_data(data, width, height);
     imageView = new ImageView(image, mImageTexture->texture());
 
     performLayout();
