@@ -2,6 +2,9 @@
 #define VPATHTRACER_COMMON_H
 
 #include <iostream>
+#include <vector>
+#include <glm/glm.hpp>
+#include <glm/ext.hpp>
 
 #define PI 3.1415926535
 #define TWO_PI 6.283185307
@@ -18,6 +21,13 @@
 
 using std::cout;
 using std::endl;
+using std::vector;
+
+using glm::vec2;
+using glm::vec3;
+using glm::vec4;
+using glm::mat3;
+using glm::mat4;
 
 enum scene_enum {
     BOX = 0,
@@ -47,6 +57,13 @@ enum filter_type_enum {
     JOINT
 };
 
+enum geometry_buffer {
+    GBUFFER_NONE = 0,
+    DEPTH,
+    NORMAL,
+    COLOR
+};
+
 typedef struct Config {
     scene_enum scene;
     int sampleNum;
@@ -55,11 +72,12 @@ typedef struct Config {
     float roughness;
     accel_structure_enum accelStructure;
     filter_type_enum filterType;
+    geometry_buffer gBuffer;
 
     Config(scene_enum _scene, int _sampleNum, material_enum _material, sample_way_enum _sampleWay, float _roughness,
-           accel_structure_enum _accelStructure, filter_type_enum _filterType):
+           accel_structure_enum _accelStructure, filter_type_enum _filterType, geometry_buffer _gBuffer):
            scene(_scene), sampleNum(_sampleNum), material(_material), sampleWay(_sampleWay), roughness(_roughness),
-           accelStructure(_accelStructure), filterType(_filterType) {}
+           accelStructure(_accelStructure), filterType(_filterType), gBuffer(_gBuffer) {}
 }Config;
 
 #endif //VPATHTRACER_COMMON_H

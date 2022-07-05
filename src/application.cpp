@@ -2,9 +2,10 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 #include "application.h"
+#include "renderer.h"
 
 
-Config config(BOX, 16, DIFFUSE, UNIFORM, 0.5, ACCEL_NONE, FILTER_NONE);
+Config config(BOX, 16, DIFFUSE, UNIFORM, 0.5, ACCEL_NONE, FILTER_NONE, GBUFFER_NONE);
 
 
 handleType GLTexture::load(const std::string& fileName) {
@@ -78,6 +79,11 @@ Application::Application() : nanogui::Screen(nanogui::Vector2i(SCREEN_WIDTH + FO
     vFilterType->setFixedWidth(VALUE_WIDTH);
     vFilterType->setItems({"None", "Gauss", "Bilateral", "Joint"});
 
+    form->addGroup("Show G-Buffer");
+    auto vGBuffer = form->addVariable("G-Buffer", config.gBuffer, true);
+    vGBuffer->setFixedWidth(VALUE_WIDTH);
+    vGBuffer->setItems({"None", "Depth", "Normal", "Color"});
+
     start = form->addButton("Start", [this]() {
         start->setEnabled(false);
         cout << "======== Render Settings ========" << endl
@@ -87,8 +93,11 @@ Application::Application() : nanogui::Screen(nanogui::Vector2i(SCREEN_WIDTH + FO
              << "Sample Way: " << config.sampleWay << endl
              << "Roughness: " << config.roughness << endl
              << "Accel Structure: " << config.accelStructure << endl
-             << "Filter Type: " << config.filterType << endl;
-        showPicture();
+             << "Filter Type: " << config.filterType << endl
+             << "G-Buffer: " << config.gBuffer << endl;
+//        showPicture();
+        Renderer renderer(&config, this);
+        renderer.run();
     });
 
     // Rendering Results
