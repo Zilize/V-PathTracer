@@ -93,30 +93,35 @@ Application::Application() : nanogui::Screen(nanogui::Vector2i(SCREEN_WIDTH + FO
                                   "Joint"
                           });
 
-    form->addButton("Start", []() {
+    form->addButton("Start", [this]() {
         cout << "Sample Number: " << sample_num << endl
              << "Material: " << material << endl
              << "Sample Way: " << sample_way << endl
              << "Roughness: " << roughness << endl
              << "Accel Structure: " << accel_structure << endl
              << "Filter Type: " << filter_type << endl;
+        showPicture();
     });
 
     // Rendering Results
-
-    auto image = new Window(this, "Rendering Result");
+    image = new Window(this, "Rendering Result");
     image->setPosition(Vector2i(FORM_WIDTH + MARGIN, 0));
     image->setLayout(new GroupLayout());
     image->setFixedWidth(SCREEN_WIDTH + PAD_WIDTH);
     image->setFixedHeight(SCREEN_HEIGHT + PAD_HEIGHT);
 
-    std::vector<std::pair<int, std::string>> framebuffers = loadImageDirectory(mNVGContext, "../cache");
-    for (auto& framebuffer : framebuffers) {
-        GLTexture texture(framebuffer.second);
-        auto data = texture.load(framebuffer.second + ".png");
-        mImagesData.emplace_back(std::move(texture), std::move(data));
-    }
-    auto imageView = new ImageView(image, mImagesData[0].first.texture());
+    showPicture();
+}
+
+void Application::showPicture() {
+    using namespace nanogui;
+
+    if(image->childCount()) image->removeChild(0);
+
+    framebuffers = loadImageDirectory(mNVGContext, "../cache");
+    mImageTexture = new GLTexture(framebuffers[0].second);
+    mImageTexture->load(framebuffers[0].second + ".png");
+    imageView = new ImageView(image, mImageTexture->texture());
 
     performLayout();
 }

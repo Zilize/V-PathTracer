@@ -49,10 +49,13 @@ private:
 class Application : public nanogui::Screen {
 public:
     Application();
+    void showPicture();
 
 private:
-    using imagesDataType = std::vector<std::pair<GLTexture, handleType>>;
-    imagesDataType mImagesData;
+    nanogui::Window *image;
+    nanogui::ImageView *imageView;
+    std::vector<std::pair<int, std::string>> framebuffers;
+    GLTexture *mImageTexture;
 };
 
 #endif //VPATHTRACER_APPLICATION_H
