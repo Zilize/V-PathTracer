@@ -45,6 +45,8 @@ private:
     uint8_t *imageData;
     std::mutex imageDataMutex;
     bool imageDataSignal = false;
+    float imageDataProgress = 0.0;
+    nanogui::ProgressBar *progressBar;
 
     nanogui::Button *start;
     nanogui::Window *image;

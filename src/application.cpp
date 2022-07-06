@@ -48,7 +48,7 @@ handleType GLTexture::loadData(uint8_t *data, int w, int h) {
     return textureData;
 }
 
-Application::Application() : nanogui::Screen(nanogui::Vector2i(SCREEN_WIDTH + FORM_WIDTH + PAD_WIDTH + MARGIN, SCREEN_HEIGHT + PAD_HEIGHT),
+Application::Application() : nanogui::Screen(nanogui::Vector2i(SCREEN_WIDTH + FORM_WIDTH + PAD_WIDTH + 3 * MARGIN, SCREEN_HEIGHT + PAD_HEIGHT),
                                 "V-PathTracer", false) {
     using namespace nanogui;
 
@@ -56,8 +56,9 @@ Application::Application() : nanogui::Screen(nanogui::Vector2i(SCREEN_WIDTH + FO
     config = new Config(BOX, 100, DIFFUSE, UNIFORM, 0.5, 1, ACCEL_NONE, FILTER_NONE, GBUFFER_NONE);
 
     FormHelper *form = new FormHelper(this);
-    ref<Window> setting = form->addWindow(Eigen::Vector2i(0, 0), "Settings");
+    ref<Window> setting = form->addWindow(Eigen::Vector2i(MARGIN, 0), "Settings");
     setting->setFixedWidth(FORM_WIDTH);
+    setting->setFixedHeight(FORM_HEIGHT);
 
     form->addGroup("Rendering Settings");
     auto vScene = form->addVariable("Scene", config->scene);
@@ -113,9 +114,17 @@ Application::Application() : nanogui::Screen(nanogui::Vector2i(SCREEN_WIDTH + FO
         this->run();
     });
 
+    auto progress = new Window(this, "Progress");
+    progress->setPosition(Vector2i(MARGIN, FORM_HEIGHT + MARGIN));
+    progress->setLayout(new GroupLayout());
+    progress->setFixedWidth(FORM_WIDTH);
+
+    progressBar = new ProgressBar(progress);
+    progressBar->setValue(imageDataProgress);
+
     // Rendering Results
     image = new Window(this, "Rendering Result");
-    image->setPosition(Vector2i(FORM_WIDTH + MARGIN, 0));
+    image->setPosition(Vector2i(FORM_WIDTH + 2 * MARGIN, 0));
     image->setLayout(new GroupLayout());
     image->setFixedWidth(SCREEN_WIDTH + PAD_WIDTH);
     image->setFixedHeight(SCREEN_HEIGHT + PAD_HEIGHT);
@@ -144,6 +153,7 @@ void Application::run() {
 
             this->imageDataMutex.lock();
             this->imageData = data;
+            this->imageDataProgress = (float)(i + 1) / (float)this->config->sampleCount;
             this->imageDataSignal = true;
             this->imageDataMutex.unlock();
         }
@@ -179,6 +189,7 @@ void Application::drawAll() {
     if (imageDataSignal) {
         imageDataMutex.lock();
         showFramebuffer(imageData, SCREEN_WIDTH, SCREEN_HEIGHT);
+        progressBar->setValue(imageDataProgress);
         imageDataSignal = false;
         imageDataMutex.unlock();
     }
