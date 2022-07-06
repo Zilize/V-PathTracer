@@ -4,7 +4,12 @@
 #include <unistd.h>
 #include "renderer.h"
 
-void Renderer::run() {
+void Renderer::init(Config *_config) {
+    if (!config) {
+        // TODO: clear all the buffer
+        config = _config;
+    }
+
     // Load scene
 
     // Set camera
@@ -13,16 +18,9 @@ void Renderer::run() {
 
     // Obtain GBuffer according to different task
 
-    // Rendering: update framebuffer (multi-thread)
-    // Dump framebuffer and call showInit each sample
-    for (int i = 0; i < config->sampleNum; ++i) {
-        render();
-        uint8_t *data = dumpData();
-        application->showFramebuffer(data, SCREEN_WIDTH, SCREEN_HEIGHT);
-    }
 }
 
-void Renderer::render() {
+uint8_t *Renderer::render() {
     // for debug
     framebuffer.clear();
     for (int j = SCREEN_HEIGHT - 1; j >= 0; --j) {
@@ -34,6 +32,8 @@ void Renderer::render() {
             framebuffer.emplace_back(vec3(r, g, b));
         }
     }
+
+    return dumpData();
 }
 
 void Renderer::dumpFile() {

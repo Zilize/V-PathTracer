@@ -13,8 +13,8 @@
 
 #define SCREEN_WIDTH 784
 #define SCREEN_HEIGHT 784
-#define FORM_WIDTH 220
-#define VALUE_WIDTH 80
+#define FORM_WIDTH 260
+#define VALUE_WIDTH 120
 #define MARGIN 10
 #define PAD_WIDTH 32
 #define PAD_HEIGHT 54
@@ -29,35 +29,35 @@ using glm::vec4;
 using glm::mat3;
 using glm::mat4;
 
-enum scene_enum {
+enum SceneEnum {
     BOX = 0,
     BUNNY
 };
 
-enum material_enum {
+enum MaterialEnum {
     DIFFUSE = 0,
     MICROFACET
 };
 
-enum sample_way_enum {
+enum SampleWayEnum {
     UNIFORM = 0,
     COSINE,
 };
 
-enum accel_structure_enum {
+enum AccelStructureEnum {
     ACCEL_NONE = 0,
     BVH,
     SAH
 };
 
-enum filter_type_enum {
+enum FilterTypeEnum {
     FILTER_NONE = 0,
     GAUSS,
     BILATERAL,
     JOINT
 };
 
-enum geometry_buffer {
+enum GBufferEnum {
     GBUFFER_NONE = 0,
     DEPTH,
     NORMAL,
@@ -65,19 +65,20 @@ enum geometry_buffer {
 };
 
 typedef struct Config {
-    scene_enum scene;
-    int sampleNum;
-    material_enum material;
-    sample_way_enum sampleWay;
+    SceneEnum scene;
+    int sampleCount;
+    MaterialEnum material;
+    SampleWayEnum sampleWay;
     float roughness;
-    accel_structure_enum accelStructure;
-    filter_type_enum filterType;
-    geometry_buffer gBuffer;
+    int threadCount;
+    AccelStructureEnum accelStructure;
+    FilterTypeEnum filterType;
+    GBufferEnum gBuffer;
 
-    Config(scene_enum _scene, int _sampleNum, material_enum _material, sample_way_enum _sampleWay, float _roughness,
-           accel_structure_enum _accelStructure, filter_type_enum _filterType, geometry_buffer _gBuffer):
-           scene(_scene), sampleNum(_sampleNum), material(_material), sampleWay(_sampleWay), roughness(_roughness),
-           accelStructure(_accelStructure), filterType(_filterType), gBuffer(_gBuffer) {}
+    Config(SceneEnum _scene, int _sampleCount, MaterialEnum _material, SampleWayEnum _sampleWay, float _roughness,
+           int _threadCount, AccelStructureEnum _accelStructure, FilterTypeEnum _filterType, GBufferEnum _gBuffer):
+            scene(_scene), sampleCount(_sampleCount), material(_material), sampleWay(_sampleWay), roughness(_roughness),
+            threadCount(_threadCount), accelStructure(_accelStructure), filterType(_filterType), gBuffer(_gBuffer) {}
 }Config;
 
 #endif //VPATHTRACER_COMMON_H

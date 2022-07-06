@@ -5,9 +5,7 @@
 #include "renderer.h"
 
 
-Config config(BOX, 16, DIFFUSE, UNIFORM, 0.5, ACCEL_NONE, FILTER_NONE, GBUFFER_NONE);
-
-handleType GLTexture::load_file(const std::string& fileName) {
+handleType GLTexture::loadFile(const std::string& fileName) {
     if (mTextureId) {
         glDeleteTextures(1, &mTextureId);
         mTextureId = 0;
@@ -29,7 +27,7 @@ handleType GLTexture::load_file(const std::string& fileName) {
     return textureData;
 }
 
-handleType GLTexture::load_data(uint8_t *data, int w, int h) {
+handleType GLTexture::loadData(uint8_t *data, int w, int h) {
     if (mTextureId) {
         glDeleteTextures(1, &mTextureId);
         mTextureId = 0;
@@ -53,62 +51,65 @@ Application::Application() : nanogui::Screen(nanogui::Vector2i(SCREEN_WIDTH + FO
                                 "V-PathTracer", false) {
     using namespace nanogui;
 
+    renderer = new Renderer();
+    config = new Config(BOX, 16, DIFFUSE, UNIFORM, 0.5, 1, ACCEL_NONE, FILTER_NONE, GBUFFER_NONE);
+
     FormHelper *form = new FormHelper(this);
     ref<Window> setting = form->addWindow(Eigen::Vector2i(0, 0), "Settings");
     setting->setFixedWidth(FORM_WIDTH);
 
     form->addGroup("Rendering Settings");
-    auto vScene = form->addVariable("Scene", config.scene);
+    auto vScene = form->addVariable("Scene", config->scene);
     vScene->setFixedWidth(VALUE_WIDTH);
     vScene->setItems({"Cornell Box", "Stanford Bunny"});
 
-    auto vSampleNum = form->addVariable("Sample Number", config.sampleNum);
-    vSampleNum->setFixedWidth(VALUE_WIDTH);
-    vSampleNum->setSpinnable(true);
-    vSampleNum->setFormat("[1-9][0-9]*");
-    vSampleNum->setMinMaxValues(1, 256);
+    auto vSampleCount = form->addVariable("Sample Count", config->sampleCount);
+    vSampleCount->setFixedWidth(VALUE_WIDTH);
+    vSampleCount->setSpinnable(true);
+    vSampleCount->setFormat("[1-9][0-9]*");
+    vSampleCount->setMinMaxValues(1, 256);
 
-    auto vMaterial = form->addVariable("Material", config.material, true);
+    auto vMaterial = form->addVariable("Material", config->material, true);
     vMaterial->setFixedWidth(VALUE_WIDTH);
     vMaterial->setItems({"Diffuse", "Microfacet"});
+    vMaterial->setTooltip("If set to Diffuse, the Roughness will be ignored; if set to Microfacet, the Sample Way will be ignored.");
 
-    auto vSampleWay = form->addVariable("Sample Way", config.sampleWay, true);
+    auto vSampleWay = form->addVariable("Sample Way", config->sampleWay, true);
     vSampleWay->setFixedWidth(VALUE_WIDTH);
     vSampleWay->setItems({"Uniform", "Cosine"});
+    vSampleWay->setTooltip("How to sample a direction for diffuse material.");
 
-    auto vRoughness = form->addVariable("Roughness", config.roughness, false);
+    auto vRoughness = form->addVariable("Roughness", config->roughness, false);
     vRoughness->setFixedWidth(VALUE_WIDTH);
     vRoughness->setSpinnable(true);
     vRoughness->setMinMaxValues(0.0, 1.0);
     vRoughness->setValueIncrement(0.1);
+    vRoughness->setTooltip("Roughness value for microfacet material.");
 
     form->addGroup("Optimization Settings");
-    auto vAccelStructure = form->addVariable("Accel Structure", config.accelStructure, true);
+    auto vThreadCount = form->addVariable("Thread Count", config->threadCount, true);
+    vThreadCount->setFixedWidth(VALUE_WIDTH);
+    vThreadCount->setSpinnable(true);
+    vThreadCount->setFormat("[1-9][0-9]*");
+    vThreadCount->setMinMaxValues(1, 32);
+    vThreadCount->setValueIncrement(1);
+
+    auto vAccelStructure = form->addVariable("Accel Structure", config->accelStructure, true);
     vAccelStructure->setFixedWidth(VALUE_WIDTH);
     vAccelStructure->setItems({"None", "BVH", "SAH"});
 
-    auto vFilterType = form->addVariable("Filter Type", config.filterType, true);
+    auto vFilterType = form->addVariable("Filter Type", config->filterType, true);
     vFilterType->setFixedWidth(VALUE_WIDTH);
     vFilterType->setItems({"None", "Gauss", "Bilateral", "Joint"});
 
-    form->addGroup("Show G-Buffer");
-    auto vGBuffer = form->addVariable("G-Buffer", config.gBuffer, true);
+    form->addGroup("Show GBuffer");
+    auto vGBuffer = form->addVariable("GBuffer", config->gBuffer, true);
     vGBuffer->setFixedWidth(VALUE_WIDTH);
     vGBuffer->setItems({"None", "Depth", "Normal", "Color"});
+    vGBuffer->setTooltip("If set show GBuffer, the renderer will not perform Monte Carlo rendering.");
 
     start = form->addButton("Start", [this]() {
-        start->setEnabled(false);
-        cout << "======== Render Settings ========" << endl
-             << "Scene: " << config.scene << endl
-             << "Sample Number: " << config.sampleNum << endl
-             << "Material: " << config.material << endl
-             << "Sample Way: " << config.sampleWay << endl
-             << "Roughness: " << config.roughness << endl
-             << "Accel Structure: " << config.accelStructure << endl
-             << "Filter Type: " << config.filterType << endl
-             << "G-Buffer: " << config.gBuffer << endl;
-        Renderer renderer(&config, this);
-        renderer.run();
+        this->run();
     });
 
     // Rendering Results
@@ -121,13 +122,33 @@ Application::Application() : nanogui::Screen(nanogui::Vector2i(SCREEN_WIDTH + FO
     showInit();
 }
 
+void Application::run() {
+    start->setEnabled(false);
+    cout << "======== Render Settings ========" << endl
+         << "Scene: " << config->scene << endl
+         << "Sample Count: " << config->sampleCount << endl
+         << "Material: " << config->material << endl
+         << "Sample Way: " << config->sampleWay << endl
+         << "Roughness: " << config->roughness << endl
+         << "Thread Count: " << config->threadCount << endl
+         << "Accel Structure: " << config->accelStructure << endl
+         << "Filter Type: " << config->filterType << endl
+         << "GBuffer: " << config->gBuffer << endl;
+    renderer->init(config);
+
+    for (int i = 0; i < config->sampleCount; ++i) {
+        uint8_t *data = renderer->render();
+        showFramebuffer(data, SCREEN_WIDTH, SCREEN_HEIGHT);
+    }
+}
+
 void Application::showInit() {
     using namespace nanogui;
 
     if(image->childCount()) image->removeChild(0);
 
     mImageTexture = new GLTexture("../cache/init");
-    mImageTexture->load_file("../cache/init.png");
+    mImageTexture->loadFile("../cache/init.png");
     imageView = new ImageView(image, mImageTexture->texture());
 
     performLayout();
@@ -139,7 +160,7 @@ void Application::showFramebuffer(uint8_t *data, int width, int height) {
     if(image->childCount()) image->removeChild(0);
 
     mImageTexture = new GLTexture("framebuffer");
-    mImageTexture->load_data(data, width, height);
+    mImageTexture->loadData(data, width, height);
     imageView = new ImageView(image, mImageTexture->texture());
 
     performLayout();

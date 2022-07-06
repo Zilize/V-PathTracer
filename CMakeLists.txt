@@ -30,7 +30,8 @@ add_executable(${PROJECT_NAME}
     src/renderer.cpp
 )
 
-target_link_libraries(${PROJECT_NAME} nanogui)
+find_package(Threads REQUIRED)
+target_link_libraries(${PROJECT_NAME} PUBLIC nanogui Threads::Threads)
 target_include_directories(${PROJECT_NAME} PUBLIC
     ext/nanogui/include
     ext/nanogui/ext/nanovg/src

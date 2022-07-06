@@ -3,6 +3,7 @@
 
 #include <nanogui/nanogui.h>
 #include "common.h"
+#include "renderer.h"
 
 using handleType = std::unique_ptr<uint8_t[], void(*)(void*)>;
 
@@ -21,8 +22,8 @@ public:
     *  Load a file in memory and create an OpenGL texture.
     *  Returns a handle type (an std::unique_ptr) to the loaded pixels.
     */
-    handleType load_file(const std::string& fileName);
-    handleType load_data(uint8_t *data, int w, int h);
+    handleType loadFile(const std::string& fileName);
+    handleType loadData(uint8_t *data, int w, int h);
 
 private:
     std::string mTextureName;
@@ -32,14 +33,17 @@ private:
 class Application : public nanogui::Screen {
 public:
     Application();
+    void run();
     void showInit();
     void showFramebuffer(uint8_t *data, int width, int height);
 
 private:
+    Renderer *renderer;
+    Config *config;
+
     nanogui::Button *start;
     nanogui::Window *image;
     nanogui::ImageView *imageView;
-    std::vector<std::pair<int, std::string>> framebuffers;
     GLTexture *mImageTexture;
 };
 

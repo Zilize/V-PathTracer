@@ -1,17 +1,17 @@
+#include <thread>
 #include <nanogui/nanogui.h>
 #include "common.h"
 #include "application.h"
 
-nanogui::ref<Application> app;
 
 int main(int /* argc */, char ** /* argv */) {
     try {
         nanogui::init();
 
         /* scoped variables */ {
-            app = new Application();
-            app->drawAll();
-            app->setVisible(true);
+            Application *application = new Application();
+            application->drawAll();
+            application->setVisible(true);
             nanogui::mainloop();
         }
 

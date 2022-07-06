@@ -2,24 +2,18 @@
 #define VPATHTRACER_RENDERER_H
 
 #include "common.h"
-#include "application.h"
 
 class Renderer {
 public:
     Renderer() = default;
-    Renderer(Config *_config, Application *_application) {
-        config = _config;
-        application = _application;
-    }
 
-    void run();
-    void render();
+    void init(Config *_config);
+    uint8_t *render();
     void dumpFile();
     uint8_t *dumpData();
 
 private:
     Config *config;
-    Application *application;
     vector<vec3> framebuffer;
 };
 
