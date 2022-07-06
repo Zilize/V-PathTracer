@@ -20,14 +20,14 @@ void Renderer::init(Config *_config) {
 
 }
 
-uint8_t *Renderer::render() {
+uint8_t *Renderer::render(float blue) {
     // for debug
     framebuffer.clear();
     for (int j = SCREEN_HEIGHT - 1; j >= 0; --j) {
         for (int i = 0; i < SCREEN_WIDTH; ++i) {
             auto r = double(i) / (SCREEN_WIDTH - 1);
             auto g = double(j) / (SCREEN_HEIGHT - 1);
-            auto b = 0.25;
+            auto b = blue;
 
             framebuffer.emplace_back(vec3(r, g, b));
         }

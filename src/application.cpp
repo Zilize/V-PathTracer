@@ -1,6 +1,7 @@
 #define STB_IMAGE_STATIC
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
+#include <thread>
 #include "application.h"
 #include "renderer.h"
 
@@ -52,7 +53,7 @@ Application::Application() : nanogui::Screen(nanogui::Vector2i(SCREEN_WIDTH + FO
     using namespace nanogui;
 
     renderer = new Renderer();
-    config = new Config(BOX, 16, DIFFUSE, UNIFORM, 0.5, 1, ACCEL_NONE, FILTER_NONE, GBUFFER_NONE);
+    config = new Config(BOX, 100, DIFFUSE, UNIFORM, 0.5, 1, ACCEL_NONE, FILTER_NONE, GBUFFER_NONE);
 
     FormHelper *form = new FormHelper(this);
     ref<Window> setting = form->addWindow(Eigen::Vector2i(0, 0), "Settings");
@@ -123,23 +124,31 @@ Application::Application() : nanogui::Screen(nanogui::Vector2i(SCREEN_WIDTH + FO
 }
 
 void Application::run() {
-    start->setEnabled(false);
-    cout << "======== Render Settings ========" << endl
-         << "Scene: " << config->scene << endl
-         << "Sample Count: " << config->sampleCount << endl
-         << "Material: " << config->material << endl
-         << "Sample Way: " << config->sampleWay << endl
-         << "Roughness: " << config->roughness << endl
-         << "Thread Count: " << config->threadCount << endl
-         << "Accel Structure: " << config->accelStructure << endl
-         << "Filter Type: " << config->filterType << endl
-         << "GBuffer: " << config->gBuffer << endl;
-    renderer->init(config);
+    std::thread threadRun([this]() {
+        this->start->setEnabled(false);
+        cout << "======== Render Settings ========" << endl
+             << "Scene: " << this->config->scene << endl
+             << "Sample Count: " << this->config->sampleCount << endl
+             << "Material: " << this->config->material << endl
+             << "Sample Way: " << this->config->sampleWay << endl
+             << "Roughness: " << this->config->roughness << endl
+             << "Thread Count: " << this->config->threadCount << endl
+             << "Accel Structure: " << this->config->accelStructure << endl
+             << "Filter Type: " << this->config->filterType << endl
+             << "GBuffer: " << this->config->gBuffer << endl;
+        this->renderer->init(this->config);
 
-    for (int i = 0; i < config->sampleCount; ++i) {
-        uint8_t *data = renderer->render();
-        showFramebuffer(data, SCREEN_WIDTH, SCREEN_HEIGHT);
-    }
+        for (int i = 0; i < this->config->sampleCount; ++i) {
+            uint8_t *data = this->renderer->render(0.00 + i * 0.01);
+            std::this_thread::sleep_for(std::chrono::milliseconds(6));
+
+            this->imageDataMutex.lock();
+            this->imageData = data;
+            this->imageDataSignal = true;
+            this->imageDataMutex.unlock();
+        }
+    });
+    threadRun.detach();
 }
 
 void Application::showInit() {
@@ -164,4 +173,15 @@ void Application::showFramebuffer(uint8_t *data, int width, int height) {
     imageView = new ImageView(image, mImageTexture->texture());
 
     performLayout();
+}
+
+void Application::drawAll() {
+    if (imageDataSignal) {
+        imageDataMutex.lock();
+        showFramebuffer(imageData, SCREEN_WIDTH, SCREEN_HEIGHT);
+        imageDataSignal = false;
+        imageDataMutex.unlock();
+    }
+
+    Screen::drawAll();
 }

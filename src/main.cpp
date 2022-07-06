@@ -1,4 +1,3 @@
-#include <thread>
 #include <nanogui/nanogui.h>
 #include "common.h"
 #include "application.h"

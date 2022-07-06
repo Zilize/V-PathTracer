@@ -8,7 +8,7 @@ public:
     Renderer() = default;
 
     void init(Config *_config);
-    uint8_t *render();
+    uint8_t *render(float blue);
     void dumpFile();
     uint8_t *dumpData();
 

@@ -1,6 +1,7 @@
 #ifndef VPATHTRACER_APPLICATION_H
 #define VPATHTRACER_APPLICATION_H
 
+#include <mutex>
 #include <nanogui/nanogui.h>
 #include "common.h"
 #include "renderer.h"
@@ -36,10 +37,14 @@ public:
     void run();
     void showInit();
     void showFramebuffer(uint8_t *data, int width, int height);
+    void drawAll();
 
 private:
     Renderer *renderer;
     Config *config;
+    uint8_t *imageData;
+    std::mutex imageDataMutex;
+    bool imageDataSignal = false;
 
     nanogui::Button *start;
     nanogui::Window *image;
