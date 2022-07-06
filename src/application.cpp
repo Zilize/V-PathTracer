@@ -147,15 +147,35 @@ void Application::run() {
              << "GBuffer: " << this->config->gBuffer << endl;
         this->renderer->init(this->config);
 
-        for (int i = 0; i < this->config->sampleCount; ++i) {
-            uint8_t *data = this->renderer->render(0.00 + i * 0.01);
-            std::this_thread::sleep_for(std::chrono::milliseconds(6));
+        // Task Scheduler
 
+        if (this->config->gBuffer != GBUFFER_NONE) {
+            uint8_t *data = nullptr;
+            switch (this->config->gBuffer) {
+                case DEPTH: data = this->renderer->getGBufferDepth(); break;
+                case NORMAL: data = this->renderer->getGBufferNormal(); break;
+                case COLOR: data = this->renderer->getGBufferColor(); break;
+                default: assert(0); break;
+            }
             this->imageDataMutex.lock();
             this->imageData = data;
-            this->imageDataProgress = (float)(i + 1) / (float)this->config->sampleCount;
+            this->imageDataProgress = 1.0f;
             this->imageDataSignal = true;
             this->imageDataMutex.unlock();
+        }
+        else {
+            for (int i = 0; i < this->config->sampleCount; ++i) {
+                this->renderer->render(0.00 + i * 0.01);
+                uint8_t *data = nullptr;
+                if (this->config->filterType == FILTER_NONE) data = this->renderer->getFramebuffer();
+                else data = this->renderer->getFramebufferAfterFilter();
+
+                this->imageDataMutex.lock();
+                this->imageData = data;
+                this->imageDataProgress = (float)(i + 1) / (float)this->config->sampleCount;
+                this->imageDataSignal = true;
+                this->imageDataMutex.unlock();
+            }
         }
     });
     threadRun.detach();
