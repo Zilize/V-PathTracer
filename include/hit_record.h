@@ -7,7 +7,7 @@ class Material;
 struct HitRecord {
     vec3 point;  // the hit point on the triangle
     vec3 normal;  // normalized normal
-    double time;  // the time ray traverses
+    float time;  // the time ray traverses
     shared_ptr<Material> material;
 };
 

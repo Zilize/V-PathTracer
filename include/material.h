@@ -22,12 +22,12 @@ private:
 
 class MicrofacetMaterial: public Material {
 public:
-    MicrofacetMaterial(const vec3 &_albedo, double _roughness): albedo(_albedo), roughness(_roughness) {}
+    MicrofacetMaterial(const vec3 &_albedo, float _roughness): albedo(_albedo), roughness(_roughness) {}
     bool reflect(const Ray &rayIn, const HitRecord &hitRecord, Ray &rayOut) const override;
 
 private:
     vec3 albedo;
-    double roughness;
+    float roughness;
 };
 
 class DiffuseLightMaterial: public Material {
