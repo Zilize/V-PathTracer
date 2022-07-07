@@ -2,6 +2,7 @@
 #define VPATHTRACER_RENDERER_H
 
 #include "common.h"
+#include "scene.h"
 
 class Renderer {
 public:
@@ -25,6 +26,7 @@ public:
 
 private:
     Config *config;
+    Scene *scene;
 
     vector<float> gBufferDepth;
     vector<vec3> gBufferNormal;

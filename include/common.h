@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <vector>
+#include <stdexcept>
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
 
@@ -24,6 +25,8 @@ using std::cout;
 using std::endl;
 using std::vector;
 using std::string;
+using std::shared_ptr;
+using std::make_shared;
 
 using glm::vec2;
 using glm::vec3;

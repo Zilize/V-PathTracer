@@ -1,15 +1,10 @@
 #ifndef VPATHTRACER_TRIANGLE_H
 #define VPATHTRACER_TRIANGLE_H
 
-#include <glm/glm.hpp>
 #include "common.h"
 #include "ray.h"
+#include "hit_record.h"
 
-struct HitRecord {
-    vec3 point;  // the hit point on the triangle
-    vec3 normal;  // normalized normal
-    double time;  // the time ray traverses
-};
 
 class Triangle {
 public:

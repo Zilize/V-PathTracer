@@ -3,14 +3,16 @@
 
 #include "common.h"
 #include "triangle.h"
+#include "material.h"
 
 class Object {
 public:
     Object() = default;
-    explicit Object(const string &filename);
+    Object(const string &filename, shared_ptr<Material> _material);
 
 private:
-    vector<Triangle> meshes;
+    vector<Triangle> primitives;
+    shared_ptr<Material> material;
 };
 
 #endif //VPATHTRACER_OBJECT_H

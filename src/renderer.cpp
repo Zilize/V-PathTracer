@@ -6,8 +6,11 @@
 void Renderer::init(Config *_config) {
     clear();
     config = _config;
+    scene = new Scene();
 
     // Load scene
+    if (config->scene == BOX) scene->loadSceneBox();
+    else scene->loadSceneBunny();
 
     // Set camera
 
@@ -18,6 +21,8 @@ void Renderer::init(Config *_config) {
 }
 
 void Renderer::clear() {
+    scene = nullptr;
+
     gBufferDepth.clear();
     gBufferNormal.clear();
     gBufferColor.clear();
