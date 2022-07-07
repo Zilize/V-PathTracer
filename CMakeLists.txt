@@ -23,11 +23,19 @@ add_executable(${PROJECT_NAME}
     include/common.h
     include/application.h
     include/renderer.h
+    include/obj_loader.h
+    include/scene.h
+    include/object.h
+    include/triangle.h
+    include/ray.h
 
     # sources
     src/main.cpp
     src/application.cpp
     src/renderer.cpp
+    src/scene.cpp
+    src/object.cpp
+    src/triangle.cpp
 )
 
 find_package(Threads REQUIRED)
