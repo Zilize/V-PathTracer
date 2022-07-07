@@ -177,6 +177,8 @@ void Application::run() {
                 this->imageDataMutex.unlock();
             }
         }
+
+        this->start->setEnabled(true);
     });
     threadRun.detach();
 }

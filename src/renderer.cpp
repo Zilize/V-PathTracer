@@ -5,10 +5,8 @@
 #include "renderer.h"
 
 void Renderer::init(Config *_config) {
-    if (!config) {
-        // TODO: clear all the buffer
-        config = _config;
-    }
+    clear();
+    config = _config;
 
     // Load scene
 
@@ -18,6 +16,16 @@ void Renderer::init(Config *_config) {
 
     // Obtain GBuffer according to different task
 
+}
+
+void Renderer::clear() {
+    gBufferDepth.clear();
+    gBufferNormal.clear();
+    gBufferColor.clear();
+    sampleFramebufferPool.clear();
+    framebuffer.clear();
+    framebufferAfterFilter.clear();
+    currentSampleCount = 0;
 }
 
 void Renderer::render(float blue) {

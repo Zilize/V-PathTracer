@@ -8,6 +8,7 @@ public:
     Renderer() = default;
 
     void init(Config *_config);
+    void clear();
     void render(float blue);
     void filterByGauss();
     void filterByBilateral();
