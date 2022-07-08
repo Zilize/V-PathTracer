@@ -3,6 +3,7 @@
 
 #include "common.h"
 #include "object.h"
+#include "accel_structure.h"
 
 class Scene {
 public:
@@ -12,13 +13,16 @@ public:
     void loadSceneBunny();  // load stanford bunny
     void add(Object *object) { objects.emplace_back(object); }
 
+    void buildNaive();
     void buildBVH();
     void buildSAH();
 
-    void intersect(const Ray &ray, HitRecord &hitRecord);
+    vec3 castRay(const Ray &ray);
+    bool getGBufferInfo(const Ray &ray, float &depth, vec3 &normal, vec3 &color);
 
 private:
     vector<Object*> objects;
+    AccelStructure *accelStructure;
 };
 
 #endif //VPATHTRACER_SCENE_H

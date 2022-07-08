@@ -8,7 +8,7 @@ public:
     Ray() = default;
     Ray(const vec3 &_origin, const vec3 &_direction): origin(_origin), direction(normalize(_direction)) {}
 
-private:
+public:
     vec3 origin;
     vec3 direction;
 };

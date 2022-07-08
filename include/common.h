@@ -36,6 +36,7 @@ using glm::mat4;
 using glm::radians;
 using glm::tan;
 using glm::normalize;
+using glm::dot;
 using glm::cross;
 using glm::linearRand;
 

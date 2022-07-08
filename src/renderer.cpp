@@ -13,11 +13,19 @@ void Renderer::init(Config *_config) {
     else scene->loadSceneBunny();
 
     // Set camera
+    camera = new Camera(vec3(278, 273, -800), vec3(278, 273, 0), vec3(0, 1, 0), 40, 1);
 
     // Build accelerating structure
+    switch (config->accelStructure) {
+        case ACCEL_NONE: scene->buildNaive(); break;
+        case BVH: scene->buildBVH(); break;
+        case SAH: scene->buildSAH(); break;
+        default: break;
+    }
 
-    // Obtain GBuffer according to different task
-
+    if (config->gBuffer != GBUFFER_NONE || (config->filterType != FILTER_NONE && config->filterType != GAUSS)) {
+        buildGBuffer();
+    }
 }
 
 void Renderer::clear() {
@@ -32,16 +40,34 @@ void Renderer::clear() {
     currentSampleCount = 0;
 }
 
-void Renderer::render(float blue) {
-    // for debug
+void Renderer::render() {
     framebuffer.clear();
-    for (int j = SCREEN_HEIGHT - 1; j >= 0; --j) {
-        for (int i = 0; i < SCREEN_WIDTH; ++i) {
-            auto r = double(i) / (SCREEN_WIDTH - 1);
-            auto g = double(j) / (SCREEN_HEIGHT - 1);
-            auto b = blue;
+    for (int i = 0; i < SCREEN_HEIGHT; ++i) {
+        for (int j = 0; j < SCREEN_WIDTH; ++j) {
+            Ray ray = camera->getRayRandom(i, j);
+            vec3 pixel = scene->castRay(ray);
+            framebuffer.emplace_back(pixel);
+        }
+    }
+}
 
-            framebuffer.emplace_back(vec3(r, g, b));
+void Renderer::buildGBuffer() {
+    for (int i = 0; i < SCREEN_HEIGHT; ++i) {
+        for (int j = 0; j < SCREEN_WIDTH; ++j) {
+            float depth;
+            vec3 normal, color;
+
+            Ray ray = camera->getRayMiddle(i, j);
+            if (scene->getGBufferInfo(ray, depth, normal, color)) {
+                gBufferDepth.emplace_back(depth);
+                gBufferNormal.emplace_back(normal);
+                gBufferColor.emplace_back(color);
+            }
+            else {  // set background color for GBuffer
+                gBufferDepth.emplace_back(-1.0);
+                gBufferNormal.emplace_back(normalize(vec3(1, 1, 1)));
+                gBufferColor.emplace_back(normalize(vec3(1, 1, 1)));
+            }
         }
     }
 }
@@ -59,11 +85,11 @@ void Renderer::filterByJoint() {
 }
 
 uint8_t *Renderer::getGBufferDepth() {
-    float minDepth = gBufferDepth[0];
-    float maxDepth = gBufferDepth[0];
+    float minDepth = std::numeric_limits<float>::max();
+    float maxDepth = 0.0f;
     for (auto depth: gBufferDepth) {
         if (depth > maxDepth) maxDepth = depth;
-        if (depth < minDepth) minDepth = depth;
+        if (depth < minDepth && depth > 0.0f) minDepth = depth;
     }
     float range = maxDepth - minDepth;
     vector<vec3> gBufferDepthVisual;

@@ -25,6 +25,10 @@ void Scene::loadSceneBunny() {
 
 }
 
+void Scene::buildNaive() {
+    accelStructure = new NaiveAccelStructure(objects);
+}
+
 void Scene::buildBVH() {
 
 }
@@ -33,6 +37,17 @@ void Scene::buildSAH() {
 
 }
 
-void Scene::intersect(const Ray &ray, HitRecord &hitRecord) {
+vec3 Scene::castRay(const Ray &ray) {
+    return {0, 1, 0};
+}
 
+bool Scene::getGBufferInfo(const Ray &ray, float &depth, vec3 &normal, vec3 &color) {
+    HitRecord hitRecord;
+    bool status = accelStructure->intersect(ray, hitRecord);
+    if (!status) return false;
+
+    depth = hitRecord.time;
+    normal = hitRecord.normal;
+    color = hitRecord.material->getColor();
+    return true;
 }

@@ -31,6 +31,7 @@ add_executable(${PROJECT_NAME}
     include/material.h
     include/hit_record.h
     include/camera.h
+    include/accel_structure.h
 
     # sources
     src/main.cpp
@@ -41,6 +42,7 @@ add_executable(${PROJECT_NAME}
     src/triangle.cpp
     src/material.cpp
     src/camera.cpp
+    src/accel_structure.cpp
 )
 
 find_package(Threads REQUIRED)

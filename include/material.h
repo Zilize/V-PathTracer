@@ -7,36 +7,34 @@
 
 class Material {
 public:
-    Material() = default;
+    explicit Material(const vec3 &_albedo): albedo(_albedo) {}
+
+    vec3 getColor() { return albedo; }
     virtual bool reflect(const Ray &rayIn, const HitRecord &hitRecord, Ray &rayOut) const = 0;
+
+private:
+    vec3 albedo;
 };
 
 class DiffuseMaterial: public Material {
 public:
-    explicit DiffuseMaterial(const vec3 &_albedo): albedo(_albedo) {}
+    explicit DiffuseMaterial(const vec3 &_albedo) : Material(_albedo) {}
     bool reflect(const Ray &rayIn, const HitRecord &hitRecord, Ray &rayOut) const override;
-
-private:
-    vec3 albedo;
 };
 
 class MicrofacetMaterial: public Material {
 public:
-    MicrofacetMaterial(const vec3 &_albedo, float _roughness): albedo(_albedo), roughness(_roughness) {}
+    MicrofacetMaterial(const vec3 &_albedo, float _roughness): Material(_albedo), roughness(_roughness) {}
     bool reflect(const Ray &rayIn, const HitRecord &hitRecord, Ray &rayOut) const override;
 
 private:
-    vec3 albedo;
     float roughness;
 };
 
 class DiffuseLightMaterial: public Material {
 public:
-    explicit DiffuseLightMaterial(const vec3 &_color): color(_color) {}
+    explicit DiffuseLightMaterial(const vec3 &_albedo): Material(_albedo) {}
     bool reflect(const Ray &rayIn, const HitRecord &hitRecord, Ray &rayOut) const override { return false; }
-
-private:
-    vec3 color;
 };
 
 #endif //VPATHTRACER_MATERIAL_H

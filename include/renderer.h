@@ -3,6 +3,7 @@
 
 #include "common.h"
 #include "scene.h"
+#include "camera.h"
 
 class Renderer {
 public:
@@ -10,7 +11,9 @@ public:
 
     void init(Config *_config);
     void clear();
-    void render(float blue);
+    void render();
+    void buildGBuffer();
+
     void filterByGauss();
     void filterByBilateral();
     void filterByJoint();
@@ -27,6 +30,7 @@ public:
 private:
     Config *config;
     Scene *scene;
+    Camera *camera;
 
     vector<float> gBufferDepth;
     vector<vec3> gBufferNormal;

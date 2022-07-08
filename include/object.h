@@ -10,7 +10,7 @@ public:
     Object() = default;
     Object(const string &filename, shared_ptr<Material> _material);
 
-private:
+public:
     vector<Triangle> primitives;
     shared_ptr<Material> material;
 };

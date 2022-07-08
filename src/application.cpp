@@ -53,7 +53,7 @@ Application::Application() : nanogui::Screen(nanogui::Vector2i(SCREEN_WIDTH + FO
     using namespace nanogui;
 
     renderer = new Renderer();
-    config = new Config(BOX, 100, DIFFUSE, UNIFORM, 0.5, 1, ACCEL_NONE, FILTER_NONE, GBUFFER_NONE);
+    config = new Config(BOX, 1, DIFFUSE, UNIFORM, 0.5, 1, ACCEL_NONE, FILTER_NONE, GBUFFER_NONE);
 
     FormHelper *form = new FormHelper(this);
     ref<Window> setting = form->addWindow(Eigen::Vector2i(MARGIN, 0), "Settings");
@@ -165,7 +165,7 @@ void Application::run() {
         }
         else {
             for (int i = 0; i < this->config->sampleCount; ++i) {
-                this->renderer->render(0.00 + i * 0.01);
+                this->renderer->render();
                 uint8_t *data = nullptr;
                 if (this->config->filterType == FILTER_NONE) data = this->renderer->getFramebuffer();
                 else data = this->renderer->getFramebufferAfterFilter();
