@@ -17,7 +17,7 @@ public:
     vec3 getNormal(float b0, float b1, float b2);
     shared_ptr<Material> getMaterial();
 
-private:
+public:
     vec3 v0, v1, v2;  // vertices
     vec3 n0, n1, n2;  // normalized normals
     shared_ptr<Material> material;

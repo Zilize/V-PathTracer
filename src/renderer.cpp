@@ -13,7 +13,7 @@ void Renderer::init(Config *_config) {
     else scene->loadSceneBunny();
 
     // Set camera
-    camera = new Camera(vec3(278, 273, -800), vec3(278, 273, 0), vec3(0, 1, 0), 40, 1);
+    camera = new Camera(vec3(278, 273, -750), vec3(278, 273, 0), vec3(0, 1, 0), 40, 1);
 
     // Build accelerating structure
     switch (config->accelStructure) {

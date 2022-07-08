@@ -48,7 +48,7 @@ handleType GLTexture::loadData(uint8_t *data, int w, int h) {
     return textureData;
 }
 
-Application::Application() : nanogui::Screen(nanogui::Vector2i(SCREEN_WIDTH + FORM_WIDTH + PAD_WIDTH + 3 * MARGIN, SCREEN_HEIGHT + PAD_HEIGHT),
+Application::Application() : nanogui::Screen(nanogui::Vector2i(SCREEN_WIDTH + FORM_WIDTH + PAD_WIDTH + 3 * MARGIN, APP_HEIGHT + 2 * MARGIN),
                                 "V-PathTracer", false) {
     using namespace nanogui;
 
@@ -56,7 +56,7 @@ Application::Application() : nanogui::Screen(nanogui::Vector2i(SCREEN_WIDTH + FO
     config = new Config(BOX, 1, DIFFUSE, UNIFORM, 0.5, 1, ACCEL_NONE, FILTER_NONE, GBUFFER_NONE);
 
     FormHelper *form = new FormHelper(this);
-    ref<Window> setting = form->addWindow(Eigen::Vector2i(MARGIN, 0), "Settings");
+    ref<Window> setting = form->addWindow(Eigen::Vector2i(MARGIN, MARGIN), "Settings");
     setting->setFixedWidth(FORM_WIDTH);
     setting->setFixedHeight(FORM_HEIGHT);
 
@@ -115,7 +115,7 @@ Application::Application() : nanogui::Screen(nanogui::Vector2i(SCREEN_WIDTH + FO
     });
 
     auto progress = new Window(this, "Progress");
-    progress->setPosition(Vector2i(MARGIN, FORM_HEIGHT + MARGIN));
+    progress->setPosition(Vector2i(MARGIN, FORM_HEIGHT + 2 * MARGIN));
     progress->setLayout(new GroupLayout());
     progress->setFixedWidth(FORM_WIDTH);
 
@@ -124,7 +124,7 @@ Application::Application() : nanogui::Screen(nanogui::Vector2i(SCREEN_WIDTH + FO
 
     // Rendering Results
     image = new Window(this, "Rendering Result");
-    image->setPosition(Vector2i(FORM_WIDTH + 2 * MARGIN, 0));
+    image->setPosition(Vector2i(FORM_WIDTH + 2 * MARGIN, MARGIN));
     image->setLayout(new GroupLayout());
     image->setFixedWidth(SCREEN_WIDTH + PAD_WIDTH);
     image->setFixedHeight(SCREEN_HEIGHT + PAD_HEIGHT);
