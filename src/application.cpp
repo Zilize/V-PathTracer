@@ -1,4 +1,5 @@
 #include <thread>
+#include <chrono>
 
 #define STB_IMAGE_STATIC
 #define STB_IMAGE_IMPLEMENTATION
@@ -146,7 +147,15 @@ void Application::run() {
              << "Accel Structure: " << this->config->accelStructure << endl
              << "Filter Type: " << this->config->filterType << endl
              << "GBuffer: " << this->config->gBuffer << endl;
+
+        auto startTime = std::chrono::high_resolution_clock::now();
+
         this->renderer->init(this->config);
+
+        auto endTime = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
+        cout << "========Init Duration Time========" << endl
+             << "Time: " << duration.count() << "ms" << endl;
 
         // Task Scheduler
 

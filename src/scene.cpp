@@ -90,7 +90,7 @@ void Scene::buildNaive() {
 }
 
 void Scene::buildBVH() {
-
+    accelStructure = new BVHAccelStructure(objects);
 }
 
 void Scene::buildSAH() {

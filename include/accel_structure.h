@@ -4,6 +4,36 @@
 #include "common.h"
 #include "object.h"
 
+inline vec3 lower(vec3 a, vec3 b) {
+    float minX = a.x < b.x ? a.x : b.x;
+    float minY = a.y < b.y ? a.y : b.y;
+    float minZ = a.z < b.z ? a.z : b.z;
+    return {minX, minY, minZ};
+}
+
+inline vec3 upper(vec3 a, vec3 b) {
+    float maxX = a.x > b.x ? a.x : b.x;
+    float maxY = a.y > b.y ? a.y : b.y;
+    float maxZ = a.z > b.z ? a.z : b.z;
+    return {maxX, maxY, maxZ};
+}
+
+typedef struct AABB {
+    vec3 lowerBound;
+    vec3 upperBound;
+}AABB;
+
+typedef struct TreeNode {
+    AABB box;
+    bool isLeaf;
+    TreeNode *leftChild;
+    TreeNode *rightChild;
+    int triangleIndex;
+
+    TreeNode(AABB _box, bool _isLeaf, TreeNode *_leftChild, TreeNode *_rightChild, int _triangleIndex):
+            box(_box), isLeaf(_isLeaf), leftChild(_leftChild), rightChild(_rightChild), triangleIndex(_triangleIndex) {}
+}TreeNode;
+
 class AccelStructure {
 public:
     AccelStructure() = default;
@@ -24,8 +54,12 @@ public:
     explicit BVHAccelStructure(vector<Object*> &objects);
     bool intersect(const Ray &ray, HitRecord &hitRecord) override;
 
+    TreeNode* buildBVHTree(vector<int> &triangleIndices);
+
 private:
-    // BVH Tree
+    vector<Triangle> container;
+    vector<AABB> containerAABB;
+    TreeNode *root;
 };
 
 class SAHAccelStructure: public AccelStructure {
@@ -34,7 +68,8 @@ public:
     bool intersect(const Ray &ray, HitRecord &hitRecord) override;
 
 private:
-    // SAH Tree
+    vector<Triangle> container;
+    TreeNode *root;
 };
 
 #endif //VPATHTRACER_ACCEL_STRUCTURE_H
