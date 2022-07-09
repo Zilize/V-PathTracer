@@ -1,6 +1,6 @@
 #include "triangle.h"
 
-bool Triangle::intersect(const Ray &ray, float &tnear, float &b1, float &b2) {
+bool Triangle::intersect(const Ray &ray, float &tNear, float &b1, float &b2) const {
     vec3 e1 = v1 - v0;
     vec3 e2 = v2 - v0;
     vec3 s1 = cross(ray.direction, e2);
@@ -16,16 +16,16 @@ bool Triangle::intersect(const Ray &ray, float &tnear, float &b1, float &b2) {
     if (b2 < 0 || b1 + b2 > det) return false;
 
     float invDet = 1.0f / det;
-    tnear = dot(e2, s2) * invDet;
+    tNear = dot(e2, s2) * invDet;
     b1 *= invDet;
     b2 *= invDet;
     return true;
 }
 
-vec3 Triangle::getNormal(float b0, float b1, float b2) {
+vec3 Triangle::getNormal(float b0, float b1, float b2) const {
     return b0 * n0 + b1 * n1 + b2 * n2;
 }
 
-shared_ptr<Material> Triangle::getMaterial() {
+shared_ptr<Material> Triangle::getMaterial() const {
     return material;
 }

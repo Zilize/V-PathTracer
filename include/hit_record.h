@@ -2,6 +2,7 @@
 #define VPATHTRACER_HIT_RECORD_H
 
 #include "common.h"
+
 class Material;
 
 struct HitRecord {

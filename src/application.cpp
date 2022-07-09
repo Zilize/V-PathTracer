@@ -1,10 +1,11 @@
+#include <thread>
+
 #define STB_IMAGE_STATIC
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
-#include <thread>
+
 #include "application.h"
 #include "renderer.h"
-
 
 handleType GLTexture::loadFile(const std::string& fileName) {
     if (mTextureId) {
@@ -155,7 +156,7 @@ void Application::run() {
                 case DEPTH: data = this->renderer->getGBufferDepth(); break;
                 case NORMAL: data = this->renderer->getGBufferNormal(); break;
                 case COLOR: data = this->renderer->getGBufferColor(); break;
-                default: assert(0); break;
+                default: throw std::runtime_error("GBuffer type error.");
             }
             this->imageDataMutex.lock();
             this->imageData = data;

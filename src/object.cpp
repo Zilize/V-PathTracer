@@ -1,6 +1,6 @@
-#include "object.h"
-
 #include <utility>
+
+#include "object.h"
 #include "obj_loader.h"
 
 Object::Object(const string &filename, std::shared_ptr<Material> _material) {

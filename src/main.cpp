@@ -1,7 +1,5 @@
 #include <nanogui/nanogui.h>
-#include "common.h"
 #include "application.h"
-
 
 int main(int /* argc */, char ** /* argv */) {
     try {

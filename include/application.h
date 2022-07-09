@@ -2,7 +2,9 @@
 #define VPATHTRACER_APPLICATION_H
 
 #include <mutex>
+
 #include <nanogui/nanogui.h>
+
 #include "common.h"
 #include "renderer.h"
 
