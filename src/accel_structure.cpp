@@ -69,7 +69,7 @@ TreeNode* BVHAccelStructure::buildBVHTree(vector<int> &triangleIndices) {
     if (triangleIndices.empty()) throw std::runtime_error("TriangleIndices is empty.");
     if (triangleIndices.size() == 1) {
         AABB box = containerAABB[triangleIndices[0]];
-        auto *leaf = new TreeNode(box, true, nullptr, nullptr, nullptr, triangleIndices[0]);
+        auto *leaf = new TreeNode(box, true, nullptr, nullptr, nullptr, triangleIndices[0], 0.0f);
         return leaf;
     }
 
@@ -105,7 +105,7 @@ TreeNode* BVHAccelStructure::buildBVHTree(vector<int> &triangleIndices) {
     TreeNode *leftChild = buildBVHTree(triangleIndicesLeft);
     TreeNode *rightChild = buildBVHTree(triangleIndicesRight);
 
-    auto *leaf = new TreeNode(box, false, nullptr, leftChild, rightChild, -1);
+    auto *leaf = new TreeNode(box, false, nullptr, leftChild, rightChild, -1, 0.0f);
     return leaf;
 }
 
@@ -183,14 +183,15 @@ TreeNode *SAHAccelStructure::findBestSibling(int leafIndex) {
     TreeNode *bestSibling = nullptr;
     float bestCost = std::numeric_limits<float>::max();
     std::priority_queue<TreeNode*, vector<TreeNode*>, std::function<bool(TreeNode*, TreeNode*)>> siblingQueue([](TreeNode* A, TreeNode* B) {
-        return A->cost < B->cost;
+        return A->cost > B->cost;
     });
+    root->cost = areaBound(unionBound(root->box, containerAABB[leafIndex]));
     siblingQueue.push(root);
 
     while (!siblingQueue.empty()) {
         TreeNode *currentSibling = siblingQueue.top();
         siblingQueue.pop();
-        float currentCost = areaBound(unionBound(currentSibling->box, containerAABB[leafIndex])) + ancestorCostDelta(currentSibling->parent, leafIndex);
+        float currentCost = currentSibling->cost;
         if (currentCost >= bestCost) continue;
 
         bestSibling = currentSibling;
@@ -198,8 +199,11 @@ TreeNode *SAHAccelStructure::findBestSibling(int leafIndex) {
 
         if (currentSibling->isLeaf) continue;
         // To see if it is worthwhile to explore the subtree
-        float costLowerBound = areaBound(containerAABB[leafIndex]) + ancestorCostDelta(currentSibling, leafIndex);
+        float costAncestor = ancestorCostDelta(currentSibling, leafIndex);
+        float costLowerBound = areaBound(containerAABB[leafIndex]) + costAncestor;
         if (costLowerBound < bestCost) {
+            currentSibling->leftChild->cost = areaBound(unionBound(currentSibling->leftChild->box, containerAABB[leafIndex])) + costAncestor;
+            currentSibling->rightChild->cost = areaBound(unionBound(currentSibling->rightChild->box, containerAABB[leafIndex])) + costAncestor;
             siblingQueue.push(currentSibling->leftChild);
             siblingQueue.push(currentSibling->rightChild);
         }
@@ -208,7 +212,7 @@ TreeNode *SAHAccelStructure::findBestSibling(int leafIndex) {
 }
 
 void SAHAccelStructure::insertLeaf(int leafIndex) {
-    auto *leafNode = new TreeNode(containerAABB[leafIndex], true, nullptr, nullptr,nullptr, leafIndex);
+    auto *leafNode = new TreeNode(containerAABB[leafIndex], true, nullptr, nullptr,nullptr, leafIndex, 0.0f);
     if (!root) {
         root = leafNode;
         return;
@@ -220,7 +224,7 @@ void SAHAccelStructure::insertLeaf(int leafIndex) {
     // Stage 2: create a new parent
     TreeNode *oldParent = bestSibling->parent;
     auto newParent = new TreeNode(unionBound(bestSibling->box, containerAABB[leafIndex]), false, oldParent, nullptr,
-                                  nullptr, -1);
+                                  nullptr, -1, 0.0f);
 
     if (oldParent != nullptr) {
         // The sibling was not the root

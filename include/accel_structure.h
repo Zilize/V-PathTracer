@@ -30,10 +30,10 @@ typedef struct TreeNode {
     TreeNode *leftChild;
     TreeNode *rightChild;
     int triangleIndex;
-    float cost{};  // for finding the best sibling in SAH
+    float cost;  // for finding the best sibling in SAH
 
-    TreeNode(AABB _box, bool _isLeaf, TreeNode* _parent, TreeNode *_leftChild, TreeNode *_rightChild, int _triangleIndex):
-            box(_box), isLeaf(_isLeaf), parent(_parent), leftChild(_leftChild), rightChild(_rightChild), triangleIndex(_triangleIndex) {}
+    TreeNode(AABB _box, bool _isLeaf, TreeNode* _parent, TreeNode *_leftChild, TreeNode *_rightChild, int _triangleIndex, float _cost):
+            box(_box), isLeaf(_isLeaf), parent(_parent), leftChild(_leftChild), rightChild(_rightChild), triangleIndex(_triangleIndex), cost(_cost) {}
 }TreeNode;
 
 class AccelStructure {
@@ -61,7 +61,7 @@ public:
 private:
     vector<Triangle> container;
     vector<AABB> containerAABB;
-    TreeNode *root;
+    TreeNode *root = nullptr;
 };
 
 class SAHAccelStructure: public AccelStructure {
@@ -76,7 +76,7 @@ public:
 private:
     vector<Triangle> container;
     vector<AABB> containerAABB;
-    TreeNode *root;
+    TreeNode *root = nullptr;
 };
 
 #endif //VPATHTRACER_ACCEL_STRUCTURE_H
