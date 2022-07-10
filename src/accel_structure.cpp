@@ -192,10 +192,10 @@ TreeNode *SAHAccelStructure::findBestSibling(int leafIndex) {
         TreeNode *currentSibling = siblingQueue.top();
         siblingQueue.pop();
         float currentCost = currentSibling->cost;
-        if (currentCost >= bestCost) continue;
-
-        bestSibling = currentSibling;
-        bestCost = currentCost;
+        if (currentCost < bestCost) {
+            bestSibling = currentSibling;
+            bestCost = currentCost;
+        }
 
         if (currentSibling->isLeaf) continue;
         // To see if it is worthwhile to explore the subtree
