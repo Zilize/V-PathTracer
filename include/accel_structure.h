@@ -26,12 +26,14 @@ typedef struct AABB {
 typedef struct TreeNode {
     AABB box;
     bool isLeaf;
+    TreeNode *parent;
     TreeNode *leftChild;
     TreeNode *rightChild;
     int triangleIndex;
+    float cost{};  // for finding the best sibling in SAH
 
-    TreeNode(AABB _box, bool _isLeaf, TreeNode *_leftChild, TreeNode *_rightChild, int _triangleIndex):
-            box(_box), isLeaf(_isLeaf), leftChild(_leftChild), rightChild(_rightChild), triangleIndex(_triangleIndex) {}
+    TreeNode(AABB _box, bool _isLeaf, TreeNode* _parent, TreeNode *_leftChild, TreeNode *_rightChild, int _triangleIndex):
+            box(_box), isLeaf(_isLeaf), parent(_parent), leftChild(_leftChild), rightChild(_rightChild), triangleIndex(_triangleIndex) {}
 }TreeNode;
 
 class AccelStructure {
@@ -67,8 +69,13 @@ public:
     explicit SAHAccelStructure(vector<Object*> &objects);
     bool intersect(const Ray &ray, HitRecord &hitRecord) override;
 
+    float ancestorCostDelta(TreeNode *pointer, int leafIndex);
+    TreeNode *findBestSibling(int leafIndex);
+    void insertLeaf(int leafIndex);
+
 private:
     vector<Triangle> container;
+    vector<AABB> containerAABB;
     TreeNode *root;
 };
 

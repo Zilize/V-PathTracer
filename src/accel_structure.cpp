@@ -1,3 +1,5 @@
+#include <queue>
+
 #include "accel_structure.h"
 
 AABB unionBound(const AABB &A, const AABB &B) {
@@ -67,7 +69,7 @@ TreeNode* BVHAccelStructure::buildBVHTree(vector<int> &triangleIndices) {
     if (triangleIndices.empty()) throw std::runtime_error("TriangleIndices is empty.");
     if (triangleIndices.size() == 1) {
         AABB box = containerAABB[triangleIndices[0]];
-        auto *leaf = new TreeNode(box, true, nullptr, nullptr, triangleIndices[0]);
+        auto *leaf = new TreeNode(box, true, nullptr, nullptr, nullptr, triangleIndices[0]);
         return leaf;
     }
 
@@ -103,7 +105,7 @@ TreeNode* BVHAccelStructure::buildBVHTree(vector<int> &triangleIndices) {
     TreeNode *leftChild = buildBVHTree(triangleIndicesLeft);
     TreeNode *rightChild = buildBVHTree(triangleIndicesRight);
 
-    auto *leaf = new TreeNode(box, false, leftChild, rightChild, -1);
+    auto *leaf = new TreeNode(box, false, nullptr, leftChild, rightChild, -1);
     return leaf;
 }
 
@@ -167,10 +169,140 @@ bool BVHAccelStructure::intersect(const Ray &ray, HitRecord &hitRecord) {
     return true;
 }
 
-SAHAccelStructure::SAHAccelStructure(vector<Object *> &objects) {
+float SAHAccelStructure::ancestorCostDelta(TreeNode *pointer, int leafIndex) {
+    if (!pointer) return 0.0f;
+    float result = 0.0f;
+    while (pointer) {
+        result += areaBound(unionBound(pointer->box, containerAABB[leafIndex])) - areaBound(pointer->box);
+        pointer = pointer->parent;
+    }
+    return result;
+}
 
+TreeNode *SAHAccelStructure::findBestSibling(int leafIndex) {
+    TreeNode *bestSibling = nullptr;
+    float bestCost = std::numeric_limits<float>::max();
+    std::priority_queue<TreeNode*, vector<TreeNode*>, std::function<bool(TreeNode*, TreeNode*)>> siblingQueue([](TreeNode* A, TreeNode* B) {
+        return A->cost < B->cost;
+    });
+    siblingQueue.push(root);
+
+    while (!siblingQueue.empty()) {
+        TreeNode *currentSibling = siblingQueue.top();
+        siblingQueue.pop();
+        float currentCost = areaBound(unionBound(currentSibling->box, containerAABB[leafIndex])) + ancestorCostDelta(currentSibling->parent, leafIndex);
+        if (currentCost >= bestCost) continue;
+
+        bestSibling = currentSibling;
+        bestCost = currentCost;
+
+        if (currentSibling->isLeaf) continue;
+        // To see if it is worthwhile to explore the subtree
+        float costLowerBound = areaBound(containerAABB[leafIndex]) + ancestorCostDelta(currentSibling, leafIndex);
+        if (costLowerBound < bestCost) {
+            siblingQueue.push(currentSibling->leftChild);
+            siblingQueue.push(currentSibling->rightChild);
+        }
+    }
+    return bestSibling;
+}
+
+void SAHAccelStructure::insertLeaf(int leafIndex) {
+    auto *leafNode = new TreeNode(containerAABB[leafIndex], true, nullptr, nullptr,nullptr, leafIndex);
+    if (!root) {
+        root = leafNode;
+        return;
+    }
+
+    // Stage 1: find the best sibling for the new leaf
+    TreeNode *bestSibling = findBestSibling(leafIndex);
+
+    // Stage 2: create a new parent
+    TreeNode *oldParent = bestSibling->parent;
+    auto newParent = new TreeNode(unionBound(bestSibling->box, containerAABB[leafIndex]), false, oldParent, nullptr,
+                                  nullptr, -1);
+
+    if (oldParent != nullptr) {
+        // The sibling was not the root
+        if (oldParent->leftChild == bestSibling) oldParent->leftChild = newParent;
+        else oldParent->rightChild = newParent;
+    }
+    else {
+        // The sibling was the root
+        root = newParent;
+    }
+    newParent->leftChild = bestSibling;
+    newParent->rightChild = leafNode;
+    bestSibling->parent = newParent;
+    leafNode->parent = newParent;
+
+    // Stage 3: walk back up the tree refitting AABBs
+    TreeNode *pointer = oldParent;
+    while (pointer) {
+        pointer->box = unionBound(pointer->leftChild->box, pointer->rightChild->box);
+        pointer = pointer->parent;
+    }
+}
+
+SAHAccelStructure::SAHAccelStructure(vector<Object *> &objects) {
+    // Initialize container and containerAABB
+    for (auto object: objects) {
+        container.insert(container.end(), object->primitives.begin(), object->primitives.end());
+    }
+    vector<int> triangleIndices;
+    triangleIndices.reserve(container.size());
+    for (int i = 0; i < container.size(); ++i) {
+        triangleIndices.emplace_back(i);
+        const Triangle &t = container[i];
+        AABB box;
+        box.lowerBound = lower(lower(t.v0, t.v1), t.v2);
+        box.upperBound = upper(upper(t.v0, t.v1), t.v2);
+
+        // Avoid 3D box change to 2D piece
+        if (box.lowerBound.x == box.upperBound.x) box.upperBound.x += 0.01f;
+        if (box.lowerBound.y == box.upperBound.y) box.upperBound.y += 0.01f;
+        if (box.lowerBound.z == box.upperBound.z) box.upperBound.z += 0.01f;
+
+        containerAABB.emplace_back(box);
+    }
+
+    // Build SAH incrementally
+    for (int i = 0; i < container.size(); ++i) insertLeaf(i);
 }
 
 bool SAHAccelStructure::intersect(const Ray &ray, HitRecord &hitRecord) {
+    float tNear = std::numeric_limits<float>::max();
+    float b1Near, b2Near;
+    int indexNearest = -1;
+
+    stack<TreeNode*> stackTreeNode;
+    stackTreeNode.push(root);
+    while (!stackTreeNode.empty()) {
+        TreeNode *currentTreeNode = stackTreeNode.top();
+        stackTreeNode.pop();
+        if (!testOverlap(ray, currentTreeNode->box))
+            continue;
+        if (currentTreeNode->isLeaf) {
+            int triangleIndex = currentTreeNode->triangleIndex;
+            float t, b1, b2;
+            if (container[triangleIndex].intersect(ray, t, b1, b2) && t < tNear) {
+                tNear = t;
+                b1Near = b1;
+                b2Near = b2;
+                indexNearest = triangleIndex;
+            }
+        }
+        else {
+            stackTreeNode.push(currentTreeNode->leftChild);
+            stackTreeNode.push(currentTreeNode->rightChild);
+        }
+    }
+
+    if (indexNearest == -1) return false;
+
+    hitRecord.point = ray.origin + tNear * ray.direction;
+    hitRecord.normal = container[indexNearest].getNormal(1.0f - b1Near - b2Near, b1Near, b2Near);
+    hitRecord.time = tNear;
+    hitRecord.material = container[indexNearest].getMaterial();
     return true;
 }

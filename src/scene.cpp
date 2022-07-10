@@ -94,7 +94,7 @@ void Scene::buildBVH() {
 }
 
 void Scene::buildSAH() {
-
+    accelStructure = new SAHAccelStructure(objects);
 }
 
 vec3 Scene::castRay(const Ray &ray) {
