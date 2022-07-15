@@ -55,7 +55,7 @@ Application::Application() : nanogui::Screen(nanogui::Vector2i(SCREEN_WIDTH + FO
     using namespace nanogui;
 
     renderer = new Renderer();
-    config = new Config(BOX, 1, DIFFUSE, UNIFORM, 0.5, 1, ACCEL_NONE, FILTER_NONE, GBUFFER_NONE);
+    config = new Config(BOX, 1, DIFFUSE, UNIFORM, 0.5, 1, SAH, FILTER_NONE, GBUFFER_NONE);
 
     FormHelper *form = new FormHelper(this);
     ref<Window> setting = form->addWindow(Eigen::Vector2i(MARGIN, MARGIN), "Settings");
@@ -137,7 +137,7 @@ Application::Application() : nanogui::Screen(nanogui::Vector2i(SCREEN_WIDTH + FO
 void Application::run() {
     std::thread threadRun([this]() {
         this->start->setEnabled(false);
-        cout << "======== Render Settings ========" << endl
+        cout << "=========   Render Settings   =========" << endl
              << "Scene: " << this->config->scene << endl
              << "Sample Count: " << this->config->sampleCount << endl
              << "Material: " << this->config->material << endl
@@ -146,19 +146,19 @@ void Application::run() {
              << "Thread Count: " << this->config->threadCount << endl
              << "Accel Structure: " << this->config->accelStructure << endl
              << "Filter Type: " << this->config->filterType << endl
-             << "GBuffer: " << this->config->gBuffer << endl;
+             << "GBuffer: " << this->config->gBuffer << endl << endl;
 
-        auto startTime = std::chrono::high_resolution_clock::now();
+        auto initStartTime = std::chrono::high_resolution_clock::now();
 
         this->renderer->init(this->config);
 
-        auto endTime = std::chrono::high_resolution_clock::now();
-        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
-        cout << "========Init Duration Time========" << endl
-             << "Time: " << duration.count() << "ms" << endl;
+        auto initEndTime = std::chrono::high_resolution_clock::now();
+        auto initDuration = std::chrono::duration_cast<std::chrono::milliseconds>(initEndTime - initStartTime);
+        cout << "=========  Init Duration Time  =========" << endl
+             << "Time: " << initDuration.count() << "ms" << endl << endl;
 
         // Task Scheduler
-
+        auto renderStartTime = std::chrono::high_resolution_clock::now();
         if (this->config->gBuffer != GBUFFER_NONE) {
             uint8_t *data = nullptr;
             switch (this->config->gBuffer) {
@@ -187,6 +187,10 @@ void Application::run() {
                 this->imageDataMutex.unlock();
             }
         }
+        auto renderEndTime = std::chrono::high_resolution_clock::now();
+        auto renderDuration = std::chrono::duration_cast<std::chrono::milliseconds>(renderEndTime - renderStartTime);
+        cout << "========= Render Duration Time =========" << endl
+             << "Time: " << renderDuration.count() << "ms" << endl << endl;
 
         this->start->setEnabled(true);
     });

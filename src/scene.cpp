@@ -97,6 +97,10 @@ void Scene::buildSAH() {
     accelStructure = new SAHAccelStructure(objects);
 }
 
+vec3 Scene::shade(const HitRecord &hitRecord, const Ray &rayIn) {
+    return {0, 0, 0};
+}
+
 vec3 Scene::castRay(const Ray &ray) {
     return {0, 1, 0};
 }
