@@ -17,6 +17,7 @@ public:
     void buildBVH();
     void buildSAH();
 
+    void sampleLight(vec3 &point, vec3 &normal, vec3 &color, float &pdf);
     vec3 shade(const HitRecord &hitRecord, const Ray &rayIn);
     vec3 castRay(const Ray &ray);
     bool getGBufferInfo(const Ray &ray, float &depth, vec3 &normal, vec3 &color);

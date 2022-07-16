@@ -14,7 +14,7 @@ void Renderer::init(Config *_config) {
     else scene->loadSceneBunny();
 
     // Set camera
-    camera = new Camera(vec3(278, 273, -750), vec3(278, 273, 0), vec3(0, 1, 0), 40, 1);
+    camera = new Camera(vec3(278, 273, -790), vec3(278, 273, 0), vec3(0, 1, 0), 38, 1);
 
     // Build accelerating structure
     switch (config->accelStructure) {
@@ -42,14 +42,25 @@ void Renderer::clear() {
 }
 
 void Renderer::render() {
-    framebuffer.clear();
+    sampleFramebuffer.clear();
     for (int i = 0; i < SCREEN_HEIGHT; ++i) {
         for (int j = 0; j < SCREEN_WIDTH; ++j) {
             Ray ray = camera->getRayRandom(i, j);
             vec3 pixel = scene->castRay(ray);
-            framebuffer.emplace_back(pixel);
+            sampleFramebuffer.emplace_back(pixel);
         }
     }
+    if (currentSampleCount == 0) {
+        for (auto pixel: sampleFramebuffer)
+            framebuffer.emplace_back(pixel);
+    }
+    else {
+        for (int i = 0; i < framebuffer.size(); ++i) {
+            framebuffer[i] = (float)currentSampleCount / ((float)currentSampleCount + 1.0f) * framebuffer[i] + 1.0f / ((float)currentSampleCount + 1.0f) * sampleFramebuffer[i];
+        }
+    }
+    currentSampleCount += 1;
+    cout << "Sample Counter: " << currentSampleCount << endl;
 }
 
 void Renderer::buildGBuffer() {
@@ -135,9 +146,9 @@ void Renderer::dumpFile(vector<vec3> &buffer) {
 
     int index = 0;
     for (auto pixel: buffer) {
-        data[index++] = static_cast<uint8_t>(255.999 * pixel.x);
-        data[index++] = static_cast<uint8_t>(255.999 * pixel.y);
-        data[index++] = static_cast<uint8_t>(255.999 * pixel.z);
+        data[index++] = static_cast<uint8_t>(255.999 * glm::clamp(pixel.x, 0.0f, 1.0f));
+        data[index++] = static_cast<uint8_t>(255.999 * glm::clamp(pixel.y, 0.0f, 1.0f));
+        data[index++] = static_cast<uint8_t>(255.999 * glm::clamp(pixel.z, 0.0f, 1.0f));
     }
     stbi_write_png("../cache/framebuffer.png", SCREEN_WIDTH, SCREEN_HEIGHT, 3, data, SCREEN_WIDTH * 3);
     delete data;
@@ -149,9 +160,9 @@ uint8_t *Renderer::dumpData(vector<vec3> &buffer) {
 
     int index = 0;
     for (auto pixel: buffer) {
-        data[index++] = static_cast<uint8_t>(255.999 * pixel.x);
-        data[index++] = static_cast<uint8_t>(255.999 * pixel.y);
-        data[index++] = static_cast<uint8_t>(255.999 * pixel.z);
+        data[index++] = static_cast<uint8_t>(255 * std::powf(glm::clamp(pixel.x, 0.0f, 1.0f), 0.6f));
+        data[index++] = static_cast<uint8_t>(255 * std::powf(glm::clamp(pixel.y, 0.0f, 1.0f), 0.6f));
+        data[index++] = static_cast<uint8_t>(255 * std::powf(glm::clamp(pixel.z, 0.0f, 1.0f), 0.6f));
     }
     return data;  // Todo: data not delete yet.
 }

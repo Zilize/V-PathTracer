@@ -49,7 +49,7 @@ bool NaiveAccelStructure::intersect(const Ray &ray, HitRecord &hitRecord) {
     int indexNearest = -1;
     for (int i = 0; i < container.size(); ++i) {
         float t, b1, b2;  // barycentric coordinates
-        if (container[i].intersect(ray, t, b1, b2) && t < tNear) {
+        if (container[i].intersect(ray, t, b1, b2) && t < tNear && t > 0) {
             tNear = t;
             b1Near = b1;
             b2Near = b2;
@@ -147,7 +147,7 @@ bool BVHAccelStructure::intersect(const Ray &ray, HitRecord &hitRecord) {
         if (currentTreeNode->isLeaf) {
             int triangleIndex = currentTreeNode->triangleIndex;
             float t, b1, b2;
-            if (container[triangleIndex].intersect(ray, t, b1, b2) && t < tNear) {
+            if (container[triangleIndex].intersect(ray, t, b1, b2) && t < tNear && t > 0) {
                 tNear = t;
                 b1Near = b1;
                 b2Near = b2;
@@ -289,7 +289,7 @@ bool SAHAccelStructure::intersect(const Ray &ray, HitRecord &hitRecord) {
         if (currentTreeNode->isLeaf) {
             int triangleIndex = currentTreeNode->triangleIndex;
             float t, b1, b2;
-            if (container[triangleIndex].intersect(ray, t, b1, b2) && t < tNear) {
+            if (container[triangleIndex].intersect(ray, t, b1, b2) && t < tNear && t > 0) {
                 tNear = t;
                 b1Near = b1;
                 b2Near = b2;

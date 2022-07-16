@@ -24,6 +24,8 @@
 #define PAD_HEIGHT 54
 #define APP_HEIGHT (SCREEN_HEIGHT + PAD_HEIGHT > FORM_HEIGHT + 100 ? SCREEN_HEIGHT + PAD_HEIGHT : FORM_HEIGHT + 100)
 
+#define RUSSIAN_ROULETTE 0.8
+
 using std::cout;
 using std::endl;
 using std::vector;
