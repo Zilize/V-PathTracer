@@ -174,6 +174,7 @@ void Application::run() {
             this->imageDataMutex.unlock();
         }
         else {
+            cout << "=========      Rendering      =========" << endl;
             for (int i = 0; i < this->config->sampleCount; ++i) {
                 this->renderer->render();
                 uint8_t *data = nullptr;
@@ -186,6 +187,8 @@ void Application::run() {
                 this->imageDataSignal = true;
                 this->imageDataMutex.unlock();
             }
+            this->renderer->dumpFramebuffer();
+            cout << endl;
         }
         auto renderEndTime = std::chrono::high_resolution_clock::now();
         auto renderDuration = std::chrono::duration_cast<std::chrono::milliseconds>(renderEndTime - renderStartTime);

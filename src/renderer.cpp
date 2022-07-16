@@ -160,6 +160,10 @@ uint8_t *Renderer::getFramebufferAfterFilter() {
     return dumpData(framebufferAfterFilter);
 }
 
+void Renderer::dumpFramebuffer() {
+    dumpFile(framebuffer);
+}
+
 void Renderer::dumpFile(vector<vec3> &buffer) {
     assert(buffer.size() == SCREEN_WIDTH * SCREEN_HEIGHT);
     uint8_t *data = new uint8_t[SCREEN_WIDTH * SCREEN_HEIGHT * 3];
