@@ -55,7 +55,7 @@ Application::Application() : nanogui::Screen(nanogui::Vector2i(SCREEN_WIDTH + FO
     using namespace nanogui;
 
     renderer = new Renderer();
-    config = new Config(BOX, 10, DIFFUSE, UNIFORM, 0.5, 1, SAH, FILTER_NONE, GBUFFER_NONE);
+    config = new Config(BOX, 10, DIFFUSE, UNIFORM, 0.5, 8, SAH, FILTER_NONE, GBUFFER_NONE);
 
     FormHelper *form = new FormHelper(this);
     ref<Window> setting = form->addWindow(Eigen::Vector2i(MARGIN, MARGIN), "Settings");
@@ -67,7 +67,7 @@ Application::Application() : nanogui::Screen(nanogui::Vector2i(SCREEN_WIDTH + FO
     vScene->setFixedWidth(VALUE_WIDTH);
     vScene->setItems({"Cornell Box", "Stanford Bunny"});
 
-    auto vSampleCount = form->addVariable("Sample Count", config->sampleCount);
+    auto vSampleCount = form->addVariable("SPP", config->sampleCount);
     vSampleCount->setFixedWidth(VALUE_WIDTH);
     vSampleCount->setSpinnable(true);
     vSampleCount->setFormat("[1-9][0-9]*");

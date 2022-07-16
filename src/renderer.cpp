@@ -1,3 +1,5 @@
+#include <thread>
+
 #define STBI_MSC_SECURE_CRT
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb_image_write.h>
@@ -8,6 +10,12 @@ void Renderer::init(Config *_config) {
     clear();
     config = _config;
     scene = new Scene();
+
+    // Init sampleFramebufferPool and framebuffer
+    for (int i = 0; i < config->threadCount; ++i)
+        sampleFramebufferPool.emplace_back(vector<vec3>());
+    for (int i = 0; i < SCREEN_HEIGHT * SCREEN_WIDTH; ++i)
+        framebuffer.emplace_back(vec3(0, 0, 0));
 
     // Load scene
     if (config->scene == BOX) scene->loadSceneBox();
@@ -42,25 +50,37 @@ void Renderer::clear() {
 }
 
 void Renderer::render() {
-    sampleFramebuffer.clear();
-    for (int i = 0; i < SCREEN_HEIGHT; ++i) {
-        for (int j = 0; j < SCREEN_WIDTH; ++j) {
-            Ray ray = camera->getRayRandom(i, j);
-            vec3 pixel = scene->castRay(ray);
-            sampleFramebuffer.emplace_back(pixel);
+    for (auto & sampleFramebuffer : sampleFramebufferPool)
+        sampleFramebuffer.clear();
+    int blockLength = floor(1.0f * SCREEN_HEIGHT / (float)config->threadCount);
+
+    threadPool.clear();
+    for (int threadIndex = 0; threadIndex < config->threadCount; ++threadIndex) {
+        std::thread t([this, threadIndex, blockLength]() {
+            int begin = threadIndex * blockLength;
+            int end = (threadIndex == config->threadCount) ? SCREEN_HEIGHT : (threadIndex + 1) * blockLength;
+            for (int i = begin; i < end; ++i) {
+                for (int j = 0; j < SCREEN_WIDTH; ++j) {
+                    Ray ray = camera->getRayRandom(i, j);
+                    vec3 pixel = scene->castRay(ray);
+                    sampleFramebufferPool[threadIndex].emplace_back(pixel);
+                }
+            }
+        });
+        threadPool.emplace_back(std::move(t));
+    }
+    for (auto &t: threadPool) t.join();
+
+    int pixelIndex = 0;
+    for (auto &sampleFramebuffer: sampleFramebufferPool) {
+        for (auto &pixel: sampleFramebuffer) {
+            framebuffer[pixelIndex] = (float)currentSampleCount / ((float)currentSampleCount + 1.0f) * framebuffer[pixelIndex] +
+                                      1.0f / ((float)currentSampleCount + 1.0f) * pixel;
+            pixelIndex++;
         }
     }
-    if (currentSampleCount == 0) {
-        for (auto pixel: sampleFramebuffer)
-            framebuffer.emplace_back(pixel);
-    }
-    else {
-        for (int i = 0; i < framebuffer.size(); ++i) {
-            framebuffer[i] = (float)currentSampleCount / ((float)currentSampleCount + 1.0f) * framebuffer[i] + 1.0f / ((float)currentSampleCount + 1.0f) * sampleFramebuffer[i];
-        }
-    }
-    currentSampleCount += 1;
-    cout << "Sample Counter: " << currentSampleCount << endl;
+    currentSampleCount++;
+    cout << "SPP: " << currentSampleCount << endl;
 }
 
 void Renderer::buildGBuffer() {
@@ -146,9 +166,9 @@ void Renderer::dumpFile(vector<vec3> &buffer) {
 
     int index = 0;
     for (auto pixel: buffer) {
-        data[index++] = static_cast<uint8_t>(255.999 * glm::clamp(pixel.x, 0.0f, 1.0f));
-        data[index++] = static_cast<uint8_t>(255.999 * glm::clamp(pixel.y, 0.0f, 1.0f));
-        data[index++] = static_cast<uint8_t>(255.999 * glm::clamp(pixel.z, 0.0f, 1.0f));
+        data[index++] = static_cast<uint8_t>(255 * std::powf(glm::clamp(pixel.x, 0.0f, 1.0f), 0.6f));
+        data[index++] = static_cast<uint8_t>(255 * std::powf(glm::clamp(pixel.y, 0.0f, 1.0f), 0.6f));
+        data[index++] = static_cast<uint8_t>(255 * std::powf(glm::clamp(pixel.z, 0.0f, 1.0f), 0.6f));
     }
     stbi_write_png("../cache/framebuffer.png", SCREEN_WIDTH, SCREEN_HEIGHT, 3, data, SCREEN_WIDTH * 3);
     delete data;

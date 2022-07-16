@@ -35,8 +35,8 @@ private:
     vector<float> gBufferDepth;
     vector<vec3> gBufferNormal;
     vector<vec3> gBufferColor;
+    vector<std::thread> threadPool;
     vector<vector<vec3>> sampleFramebufferPool;  // Framebuffer for each sample, for each thread
-    vector<vec3> sampleFramebuffer; // TODO: just for debug
     vector<vec3> framebuffer;  // Framebuffer for average shading result until now
     vector<vec3> framebufferAfterFilter;  // Framebuffer after filter utilizing GBuffer
 
