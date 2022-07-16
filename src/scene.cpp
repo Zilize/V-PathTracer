@@ -6,6 +6,8 @@ void Scene::loadSceneBox() {
     auto whiteDiffuseMaterial = make_shared<DiffuseMaterial>(vec3(0.725, 0.71, 0.68));
     auto lightMaterial = make_shared<DiffuseLightMaterial>(vec3(23.918, 19.283, 15.541));
 
+//    auto whiteMirrorMaterial = make_shared<MirrorMaterial>(vec3(0.725, 0.71, 0.68));
+
     auto floor = new Object("../models/cornellbox/floor.obj", whiteDiffuseMaterial);
     auto left = new Object("../models/cornellbox/left.obj", redDiffuseMaterial);
     auto right = new Object("../models/cornellbox/right.obj", greenDiffuseMaterial);

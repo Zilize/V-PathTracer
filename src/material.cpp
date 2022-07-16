@@ -31,7 +31,17 @@ vec3 DiffuseMaterial::brdf(const vec3 &rayInDir, const vec3 &rayOutDir, const ve
     // Actually, the rayOutDir is the rayInDir for real light ray
     if (dot(normal, rayOutDir) > 0.0f) return albedo / (float)PI;
     else return {0, 0, 0};
-};
+}
+
+void MirrorMaterial::reflect(const vec3 &rayInDir, const vec3 &normal, vec3 &rayOutDir, float &pdf) const {
+    rayOutDir = rayInDir - 2.0f * normal * dot(normal, rayInDir);
+    pdf = std::max(0.0005f, dot(normal, rayOutDir));
+}
+
+vec3 MirrorMaterial::brdf(const vec3 &rayInDir, const vec3 &rayOutDir, const vec3 &normal) const {
+    if (dot(normal, rayOutDir) > 0.0f) return albedo;
+    else return {0, 0, 0};
+}
 
 void MicrofacetMaterial::reflect(const vec3 &rayInDir, const vec3 &normal, vec3 &rayOutDir, float &pdf) const {
 

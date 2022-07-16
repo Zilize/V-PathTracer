@@ -30,6 +30,18 @@ private:
     vec3 albedo;
 };
 
+class MirrorMaterial: public Material {
+public:
+    explicit MirrorMaterial(const vec3 &_albedo) : Material(false), albedo(_albedo) {}
+    void reflect(const vec3 &rayInDir, const vec3 &normal, vec3 &rayOutDir, float &pdf) const override;
+    vec3 brdf(const vec3 &rayInDir, const vec3 &rayOutDir, const vec3 &normal) const override;
+
+    vec3 getColor() const override { return albedo; }
+
+private:
+    vec3 albedo;
+};
+
 class MicrofacetMaterial: public Material {
 public:
     MicrofacetMaterial(const vec3 &_albedo, float _roughness): Material(false), albedo(_albedo), roughness(_roughness) {}
