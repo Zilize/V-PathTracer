@@ -110,7 +110,7 @@ void Renderer::filterByGauss() {
     vector<float> weights;
     float weightSum = 0.0f;
     for (int i = 0; i < halfSize; ++i) {
-        float value = gaussianFilter((float)i, GAUSSIAN_FILTER_SIGMA);
+        float value = gaussianFilter(i, GAUSSIAN_FILTER_SIGMA);
         weights.emplace_back(value);
         if (i == 0) weightSum += value;
         else weightSum += 2 * value;
@@ -152,7 +152,74 @@ void Renderer::filterByGauss() {
 }
 
 void Renderer::filterByBilateral() {
+    int halfSize = (BILATERAL_FILTER_SIZE - 1) / 2;
 
+#ifdef BILATERAL_FILTER_ACCELERATION
+    // Horizontal Filtering
+    vector<vec3> framebufferAfterHorizontal;
+    for (int i = 0; i < SCREEN_HEIGHT; ++i) {
+        for (int j = 0; j < SCREEN_WIDTH; ++j) {
+            if (j - halfSize < 0 || j + halfSize >= SCREEN_WIDTH) {
+                framebufferAfterHorizontal.emplace_back(framebuffer[i * SCREEN_WIDTH + j]);
+                continue;
+            }
+            vec3 pixel(0, 0, 0);
+            float weightSum = 0.0f;
+            for (int col = j - halfSize; col <= j + halfSize; ++col) {
+                vec3 colorDistance = framebuffer[i * SCREEN_WIDTH + col] - framebuffer[i * SCREEN_WIDTH + j];
+                float weight = bilateralFilter(col - j, colorDistance, BILATERAL_FILTER_DISTANCE_SIGMA, BILATERAL_FILTER_COLOR_SIGMA);
+                pixel += weight * framebuffer[i * SCREEN_WIDTH + col];
+                weightSum += weight;
+            }
+            pixel /= weightSum;
+            framebufferAfterHorizontal.emplace_back(pixel);
+        }
+    }
+
+    // Vertical Filtering
+    for (int i = 0; i < SCREEN_HEIGHT; ++i) {
+        for (int j = 0; j < SCREEN_WIDTH; ++j) {
+            if (i - halfSize < 0 || i + halfSize >= SCREEN_HEIGHT) {
+                framebufferAfterFilter.emplace_back(framebufferAfterHorizontal[i * SCREEN_WIDTH + j]);
+                continue;
+            }
+            vec3 pixel(0, 0, 0);
+            float weightSum = 0.0f;
+            for (int row = i - halfSize; row <= i + halfSize; ++row) {
+                vec3 colorDistance = framebufferAfterHorizontal[row * SCREEN_WIDTH + j] - framebufferAfterHorizontal[i * SCREEN_WIDTH + j];
+                float weight = bilateralFilter(row - i, colorDistance, BILATERAL_FILTER_DISTANCE_SIGMA, BILATERAL_FILTER_COLOR_SIGMA);
+                pixel += weight * framebufferAfterHorizontal[row * SCREEN_WIDTH + j];
+                weightSum += weight;
+            }
+            pixel /= weightSum;
+            framebufferAfterFilter.emplace_back(pixel);
+        }
+    }
+#else
+    for (int i = 0; i < SCREEN_HEIGHT; ++i) {
+        for (int j = 0; j < SCREEN_WIDTH; ++j) {
+            if (i - halfSize < 0 || j - halfSize < 0 || i + halfSize >= SCREEN_HEIGHT || j + halfSize >= SCREEN_WIDTH) {
+                framebufferAfterFilter.emplace_back(framebuffer[i * SCREEN_WIDTH + j]);
+                continue;
+            }
+            vec3 pixel(0, 0, 0);
+            float weightSum = 0.0f;
+            for (int row = i - halfSize; row <= i + halfSize; ++row) {
+                for (int col = j - halfSize; col <= j + halfSize; ++col) {
+                    int distanceSquare = (row - i) * (row - i) + (col - j) * (col - j);
+                    float colorDistance = length(framebuffer[row * SCREEN_WIDTH + col] - framebuffer[i * SCREEN_WIDTH + j]);
+                    float variance = 2.0f * BILATERAL_FILTER_DISTANCE_SIGMA * BILATERAL_FILTER_DISTANCE_SIGMA;
+                    float varianceColor = 2.0f * BILATERAL_FILTER_COLOR_SIGMA * BILATERAL_FILTER_COLOR_SIGMA;
+                    float weight = powf(2.718281828f, - (float)distanceSquare / variance - colorDistance * colorDistance / varianceColor);
+                    pixel += weight * framebuffer[row * SCREEN_WIDTH + col];
+                    weightSum += weight;
+                }
+            }
+            pixel /= weightSum;
+            framebufferAfterFilter.emplace_back(pixel);
+        }
+    }
+#endif
 }
 
 void Renderer::filterByJoint() {

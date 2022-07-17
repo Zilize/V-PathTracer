@@ -31,6 +31,8 @@
 #define BILATERAL_FILTER_DISTANCE_SIGMA 1.0f
 #define BILATERAL_FILTER_COLOR_SIGMA 1.0f
 
+#define BILATERAL_FILTER_ACCELERATION
+
 using std::cout;
 using std::endl;
 using std::vector;

@@ -49,10 +49,10 @@ float geometricSmith(float roughness, float NoV, float NoL) {
     return gl * gv;
 }
 
-float gaussianFilter(float distance, float sigma) {
-    return 1.0f / (sqrtf(2.0f * (float)PI) * sigma) * powf(2.718281828f, - distance * distance / (2.0f * sigma * sigma));
+float gaussianFilter(int distance, float sigma) {
+    return 1.0f / (sqrtf(2.0f * (float)PI) * sigma) * powf(2.718281828f, - (float)(distance * distance) / (2.0f * sigma * sigma));
 }
 
-float bilateralFilter() {
-
+float bilateralFilter(int distance, vec3 colorDistance, float sigma, float colorSigma) {
+    return powf(2.718281828f, - (float)(distance * distance) / (2.0f * sigma * sigma) - length(colorDistance) * length(colorDistance) / (2.0f * colorSigma * colorSigma));
 }
