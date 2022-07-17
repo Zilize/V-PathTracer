@@ -55,7 +55,7 @@ Application::Application() : nanogui::Screen(nanogui::Vector2i(SCREEN_WIDTH + FO
     using namespace nanogui;
 
     renderer = new Renderer();
-    config = new Config(BOX, 10, DIFFUSE, UNIFORM, 0.2, 8, SAH, FILTER_NONE, GBUFFER_NONE);
+    config = new Config(BOX, 20, DIFFUSE, UNIFORM, 0.2, 8, SAH, JOINT, GBUFFER_NONE);
 
     FormHelper *form = new FormHelper(this);
     ref<Window> setting = form->addWindow(Eigen::Vector2i(MARGIN, MARGIN), "Settings");

@@ -88,18 +88,20 @@ void Renderer::buildGBuffer() {
     for (int i = 0; i < SCREEN_HEIGHT; ++i) {
         for (int j = 0; j < SCREEN_WIDTH; ++j) {
             float depth;
-            vec3 normal, color;
+            vec3 normal, color, position;
 
             Ray ray = camera->getRayMiddle(i, j);
-            if (scene->getGBufferInfo(ray, depth, normal, color)) {
+            if (scene->getGBufferInfo(ray, depth, normal, color, position)) {
                 gBufferDepth.emplace_back(depth);
                 gBufferNormal.emplace_back(normal);
                 gBufferColor.emplace_back(color);
+                gBufferPosition.emplace_back(position);
             }
             else {  // set background color for GBuffer
                 gBufferDepth.emplace_back(-1.0);
                 gBufferNormal.emplace_back(normalize(vec3(1, 1, 1)));
                 gBufferColor.emplace_back(normalize(vec3(1, 1, 1)));
+                gBufferPosition.emplace_back(vec3(0, 0, 0));
             }
         }
     }
@@ -223,7 +225,108 @@ void Renderer::filterByBilateral() {
 }
 
 void Renderer::filterByJoint() {
+    int halfSize = (JOINT_FILTER_SIZE - 1) / 2;
+    float fixNorm = JOINT_FILTER_SIZE * JOINT_FILTER_SIZE;
 
+    // Outline Removal
+    vector<vec3> framebufferAfterRemoval;
+    for (int i = 0; i < SCREEN_HEIGHT; ++i) {
+        for (int j = 0; j < SCREEN_WIDTH; ++j) {
+            if (i - halfSize < 0 || j - halfSize < 0 || i + halfSize >= SCREEN_HEIGHT || j + halfSize >= SCREEN_WIDTH) {
+                framebufferAfterRemoval.emplace_back(framebuffer[i * SCREEN_WIDTH + j]);
+                continue;
+            }
+
+            // calculate variance
+            vec3 averageColor(0, 0, 0);
+            for (int row = i - halfSize; row <= i + halfSize; ++row) {
+                for (int col = j - halfSize; col <= j + halfSize; ++col) {
+                    averageColor += framebuffer[row * SCREEN_WIDTH + col];
+                }
+            }
+            averageColor /= JOINT_FILTER_SIZE * JOINT_FILTER_SIZE;
+
+            vec3 varianceColor(0, 0, 0);
+            for (int row = i - halfSize; row <= i + halfSize; ++row) {
+                for (int col = j - halfSize; col <= j + halfSize; ++col) {
+                    vec3 distanceColor = framebuffer[row * SCREEN_WIDTH + col] - averageColor;
+                    varianceColor += distanceColor * distanceColor;
+                }
+            }
+            varianceColor /= JOINT_FILTER_SIZE * JOINT_FILTER_SIZE;
+            vec3 sigmaColor = glm::sqrt(varianceColor);
+
+            vec3 pixel = glm::clamp(framebuffer[i * SCREEN_WIDTH + j], averageColor - 1.0f * sigmaColor, averageColor + 1.0f * sigmaColor);
+            framebufferAfterRemoval.emplace_back(pixel);
+        }
+    }
+
+    // Joint Bilateral Filtering
+    for (int i = 0; i < SCREEN_HEIGHT; ++i) {
+        for (int j = 0; j < SCREEN_WIDTH; ++j) {
+            if (i - halfSize < 0 || j - halfSize < 0 || i + halfSize >= SCREEN_HEIGHT || j + halfSize >= SCREEN_WIDTH) {
+                framebufferAfterFilter.emplace_back(framebufferAfterRemoval[i * SCREEN_WIDTH + j]);
+                continue;
+            }
+
+            // calculate variance
+            vec3 averageColor(0, 0, 0);
+            for (int row = i - halfSize; row <= i + halfSize; ++row) {
+                for (int col = j - halfSize; col <= j + halfSize; ++col) {
+                    averageColor += framebufferAfterRemoval[row * SCREEN_WIDTH + col];
+                }
+            }
+            averageColor /= JOINT_FILTER_SIZE * JOINT_FILTER_SIZE;
+
+            vec3 varianceColor(0, 0, 0);
+            for (int row = i - halfSize; row <= i + halfSize; ++row) {
+                for (int col = j - halfSize; col <= j + halfSize; ++col) {
+                    vec3 distanceColor = framebufferAfterRemoval[row * SCREEN_WIDTH + col] - averageColor;
+                    varianceColor += distanceColor * distanceColor;
+                }
+            }
+            varianceColor /= JOINT_FILTER_SIZE * JOINT_FILTER_SIZE;
+
+            vec3 pixel(0, 0, 0);
+            float weightSum = 0.0f;
+
+            float weightSumDepth = 0.0f, weightSumNormal = 0.0f, weightSumColor = 0.0f;
+            for (int row = i - halfSize; row <= i + halfSize; ++row) {
+                for (int col = j - halfSize; col <= j + halfSize; ++col) {
+                    // weight of depth
+                    float distanceZ = gBufferDepth[i * SCREEN_WIDTH + j] - gBufferDepth[row * SCREEN_WIDTH + col];
+                    distanceZ = distanceZ > 0.0f ? distanceZ : -distanceZ;
+                    float gradientX = gBufferNormal[i * SCREEN_WIDTH + j].x / (gBufferNormal[i * SCREEN_WIDTH + j].z + 0.0005f);
+                    float distanceX = gBufferPosition[i * SCREEN_WIDTH + j].x - gBufferPosition[row * SCREEN_WIDTH + col].x;
+                    float predictX = gradientX * distanceX;
+                    predictX = predictX > 0.0f ? predictX : -predictX;
+                    float gradientY = gBufferNormal[i * SCREEN_WIDTH + j].y / (gBufferNormal[i * SCREEN_WIDTH + j].z + 0.0005f);
+                    float distanceY = gBufferPosition[i * SCREEN_WIDTH + j].y - gBufferPosition[row * SCREEN_WIDTH + col].y;
+                    float predictY = gradientY * distanceY;
+                    predictY = predictY > 0.0f ? predictY : -predictY;
+                    float weightDepth = powf(2.718281828f, - distanceZ / ((float)JOINT_FILTER_DEPTH_SIGMA * (predictX + predictY) + 0.0005f));
+
+                    // weight of normal
+                    float baseNormal = std::max(0.0f, dot(gBufferNormal[i * SCREEN_WIDTH + j], gBufferNormal[row * SCREEN_WIDTH + col]));
+                    float weightNormal = powf(baseNormal, JOINT_FILTER_NORMAL_SIGMA);
+
+                    // weight of color
+                    float distanceColor = length(framebufferAfterRemoval[i * SCREEN_WIDTH + j] - framebufferAfterRemoval[row * SCREEN_WIDTH + col]);
+                    float weightColor = powf(2.718281828f, - distanceColor / ((float)JOINT_FILTER_COLOR_SIGMA * sqrtf(length(varianceColor)) + 0.0005f));
+
+                    float weight = weightDepth + weightNormal / fixNorm + weightColor / fixNorm;
+                    pixel += weight * framebufferAfterRemoval[row * SCREEN_WIDTH + col];
+                    weightSum += weight;
+
+                    weightSumDepth += weightDepth;
+                    weightSumNormal += weightNormal;
+                    weightSumColor += weightColor;
+                }
+            }
+            pixel /= weightSum;
+            framebufferAfterFilter.emplace_back(pixel);
+        }
+    }
 }
 
 uint8_t *Renderer::getGBufferDepth() {

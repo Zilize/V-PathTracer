@@ -279,7 +279,7 @@ vec3 Scene::castRay(const Ray &ray) {
     else return shade(hitRecord, ray);
 }
 
-bool Scene::getGBufferInfo(const Ray &ray, float &depth, vec3 &normal, vec3 &color) {
+bool Scene::getGBufferInfo(const Ray &ray, float &depth, vec3 &normal, vec3 &color, vec3 &position) {
     HitRecord hitRecord;
     bool status = accelStructure->intersect(ray, hitRecord);
     if (!status) return false;
@@ -287,5 +287,6 @@ bool Scene::getGBufferInfo(const Ray &ray, float &depth, vec3 &normal, vec3 &col
     depth = hitRecord.time;
     normal = hitRecord.normal;
     color = hitRecord.material->getColor();
+    position = hitRecord.point;
     return true;
 }

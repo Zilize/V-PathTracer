@@ -24,7 +24,7 @@ public:
     vec3 shadeMicrofacet(const HitRecord &hitRecord, const Ray &rayIn);
     inline vec3 shade(const HitRecord &hitRecord, const Ray &rayIn);
     vec3 castRay(const Ray &ray);
-    bool getGBufferInfo(const Ray &ray, float &depth, vec3 &normal, vec3 &color);
+    bool getGBufferInfo(const Ray &ray, float &depth, vec3 &normal, vec3 &color, vec3 &position);
 
 private:
     vector<Object*> objects;
