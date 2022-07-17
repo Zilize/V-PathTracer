@@ -172,9 +172,13 @@ void Application::run() {
             for (int i = 0; i < this->config->sampleCount; ++i) {
                 this->renderer->render();
                 uint8_t *data = nullptr;
+#ifdef FILTER_ONLY_LAST_ONE
+                if (this->config->filterType != FILTER_NONE && i == this->config->sampleCount - 1) data = this->renderer->getFramebufferAfterFilter();
+                else data = this->renderer->getFramebuffer();
+#else
                 if (this->config->filterType == FILTER_NONE) data = this->renderer->getFramebuffer();
                 else data = this->renderer->getFramebufferAfterFilter();
-
+#endif
                 this->imageDataMutex.lock();
                 this->imageData = data;
                 this->imageDataProgress = (float)(i + 1) / (float)this->config->sampleCount;
@@ -182,6 +186,7 @@ void Application::run() {
                 this->imageDataMutex.unlock();
             }
             this->renderer->dumpFramebuffer();
+            if (this->config->filterType != FILTER_NONE) this->renderer->dumpFramebufferAfterFilter();
             cout << endl;
         }
         auto renderEndTime = std::chrono::high_resolution_clock::now();

@@ -410,10 +410,14 @@ uint8_t *Renderer::getFramebufferAfterFilter() {
 }
 
 void Renderer::dumpFramebuffer() {
-    dumpFile(framebuffer);
+    dumpFile(framebuffer, "../cache/framebuffer.png");
 }
 
-void Renderer::dumpFile(vector<vec3> &buffer) {
+void Renderer::dumpFramebufferAfterFilter() {
+    dumpFile(framebufferAfterFilter, "../cache/framebufferAfterFilter.png");
+}
+
+void Renderer::dumpFile(vector<vec3> &buffer, const string &filename) {
     assert(buffer.size() == SCREEN_WIDTH * SCREEN_HEIGHT);
     uint8_t *data = new uint8_t[SCREEN_WIDTH * SCREEN_HEIGHT * 3];
 
@@ -423,7 +427,7 @@ void Renderer::dumpFile(vector<vec3> &buffer) {
         data[index++] = static_cast<uint8_t>(255 * std::powf(glm::clamp(pixel.y, 0.0f, 1.0f), 0.6f));
         data[index++] = static_cast<uint8_t>(255 * std::powf(glm::clamp(pixel.z, 0.0f, 1.0f), 0.6f));
     }
-    stbi_write_png("../cache/framebuffer.png", SCREEN_WIDTH, SCREEN_HEIGHT, 3, data, SCREEN_WIDTH * 3);
+    stbi_write_png(filename.c_str(), SCREEN_WIDTH, SCREEN_HEIGHT, 3, data, SCREEN_WIDTH * 3);
     delete data;
 }
 

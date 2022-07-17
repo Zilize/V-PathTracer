@@ -26,7 +26,8 @@ public:
     uint8_t *getFramebufferAfterFilter();
 
     void dumpFramebuffer();
-    void dumpFile(vector<vec3> &buffer);
+    void dumpFramebufferAfterFilter();
+    void dumpFile(vector<vec3> &buffer, const string &filename);
     uint8_t *dumpData(vector<vec3> &buffer);
 
 private:

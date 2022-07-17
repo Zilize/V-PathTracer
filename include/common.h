@@ -37,6 +37,8 @@
 #define JOINT_FILTER_COLOR_SIGMA 1e1
 #define OUTLINE_REMOVAL_FILTER_SIZE 3
 
+#define FILTER_ONLY_LAST_ONE
+
 using std::cout;
 using std::endl;
 using std::vector;
