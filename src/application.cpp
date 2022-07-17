@@ -55,7 +55,7 @@ Application::Application() : nanogui::Screen(nanogui::Vector2i(SCREEN_WIDTH + FO
     using namespace nanogui;
 
     renderer = new Renderer();
-    config = new Config(BOX, 20, DIFFUSE, UNIFORM, 0.2, 8, SAH, JOINT, GBUFFER_NONE);
+    config = new Config(BOX, 20, DIFFUSE, 0.2, 8, SAH, JOINT, GBUFFER_NONE);
 
     FormHelper *form = new FormHelper(this);
     ref<Window> setting = form->addWindow(Eigen::Vector2i(MARGIN, MARGIN), "Settings");
@@ -78,11 +78,6 @@ Application::Application() : nanogui::Screen(nanogui::Vector2i(SCREEN_WIDTH + FO
     vMaterial->setItems({"Diffuse", "Mirror", "Microfacet"});
     vMaterial->setTooltip("If set to Diffuse, the Roughness will be ignored; if set to Microfacet, the Sample Way will be ignored.");
 
-    auto vSampleWay = form->addVariable("Sample Way", config->sampleWay, true);
-    vSampleWay->setFixedWidth(VALUE_WIDTH);
-    vSampleWay->setItems({"Uniform", "Cosine"});
-    vSampleWay->setTooltip("How to sample a direction for diffuse material.");
-
     auto vRoughness = form->addVariable("Roughness", config->roughness, false);
     vRoughness->setFixedWidth(VALUE_WIDTH);
     vRoughness->setSpinnable(true);
@@ -104,7 +99,7 @@ Application::Application() : nanogui::Screen(nanogui::Vector2i(SCREEN_WIDTH + FO
 
     auto vFilterType = form->addVariable("Filter Type", config->filterType, true);
     vFilterType->setFixedWidth(VALUE_WIDTH);
-    vFilterType->setItems({"None", "Gauss", "Bilateral", "Joint"});
+    vFilterType->setItems({"None", "Gauss", "Bilateral", "Joint", "Outline"});
 
     form->addGroup("Show GBuffer");
     auto vGBuffer = form->addVariable("GBuffer", config->gBuffer, true);
@@ -141,7 +136,6 @@ void Application::run() {
              << "Scene: " << this->config->scene << endl
              << "Sample Count: " << this->config->sampleCount << endl
              << "Material: " << this->config->material << endl
-             << "Sample Way: " << this->config->sampleWay << endl
              << "Roughness: " << this->config->roughness << endl
              << "Thread Count: " << this->config->threadCount << endl
              << "Accel Structure: " << this->config->accelStructure << endl

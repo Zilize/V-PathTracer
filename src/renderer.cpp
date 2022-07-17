@@ -329,6 +329,41 @@ void Renderer::filterByJoint() {
     }
 }
 
+void Renderer::filterByOutlineRemoval() {
+    int halfSize = (OUTLINE_REMOVAL_FILTER_SIZE - 1) / 2;
+    float k = 1.0f;
+    for (int i = 0; i < SCREEN_HEIGHT; ++i) {
+        for (int j = 0; j < SCREEN_WIDTH; ++j) {
+            if (i - halfSize < 0 || j - halfSize < 0 || i + halfSize >= SCREEN_HEIGHT || j + halfSize >= SCREEN_WIDTH) {
+                framebufferAfterFilter.emplace_back(framebuffer[i * SCREEN_WIDTH + j]);
+                continue;
+            }
+
+            // calculate variance
+            vec3 averageColor(0, 0, 0);
+            for (int row = i - halfSize; row <= i + halfSize; ++row) {
+                for (int col = j - halfSize; col <= j + halfSize; ++col) {
+                    averageColor += framebuffer[row * SCREEN_WIDTH + col];
+                }
+            }
+            averageColor /= JOINT_FILTER_SIZE * JOINT_FILTER_SIZE;
+
+            vec3 varianceColor(0, 0, 0);
+            for (int row = i - halfSize; row <= i + halfSize; ++row) {
+                for (int col = j - halfSize; col <= j + halfSize; ++col) {
+                    vec3 distanceColor = framebuffer[row * SCREEN_WIDTH + col] - averageColor;
+                    varianceColor += distanceColor * distanceColor;
+                }
+            }
+            varianceColor /= JOINT_FILTER_SIZE * JOINT_FILTER_SIZE;
+            vec3 sigmaColor = glm::sqrt(varianceColor);
+
+            vec3 pixel = glm::clamp(framebuffer[i * SCREEN_WIDTH + j], averageColor - k * sigmaColor, averageColor + k * sigmaColor);
+            framebufferAfterFilter.emplace_back(pixel);
+        }
+    }
+}
+
 uint8_t *Renderer::getGBufferDepth() {
     float minDepth = std::numeric_limits<float>::max();
     float maxDepth = 0.0f;
@@ -368,6 +403,7 @@ uint8_t *Renderer::getFramebufferAfterFilter() {
         case GAUSS: filterByGauss(); break;
         case BILATERAL: filterByBilateral(); break;
         case JOINT: filterByJoint(); break;
+        case OUTLINE: filterByOutlineRemoval(); break;
         default: assert(0); break;
     }
     return dumpData(framebufferAfterFilter);

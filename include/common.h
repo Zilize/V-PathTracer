@@ -17,7 +17,7 @@
 #define SCREEN_WIDTH 512
 #define SCREEN_HEIGHT 512
 #define FORM_WIDTH 260
-#define FORM_HEIGHT 420
+#define FORM_HEIGHT 380
 #define VALUE_WIDTH 120
 #define MARGIN 16
 #define PAD_WIDTH 32
@@ -35,6 +35,7 @@
 #define JOINT_FILTER_DEPTH_SIGMA 1e0
 #define JOINT_FILTER_NORMAL_SIGMA 1e-2
 #define JOINT_FILTER_COLOR_SIGMA 1e1
+#define OUTLINE_REMOVAL_FILTER_SIZE 3
 
 using std::cout;
 using std::endl;
@@ -67,11 +68,6 @@ enum MaterialEnum {
     MICROFACET
 };
 
-enum SampleWayEnum {
-    UNIFORM = 0,
-    COSINE,
-};
-
 enum AccelStructureEnum {
     ACCEL_NONE = 0,
     BVH,
@@ -82,7 +78,8 @@ enum FilterTypeEnum {
     FILTER_NONE = 0,
     GAUSS,
     BILATERAL,
-    JOINT
+    JOINT,
+    OUTLINE
 };
 
 enum GBufferEnum {
@@ -96,16 +93,15 @@ typedef struct Config {
     SceneEnum scene;
     int sampleCount;
     MaterialEnum material;
-    SampleWayEnum sampleWay;
     float roughness;
     int threadCount;
     AccelStructureEnum accelStructure;
     FilterTypeEnum filterType;
     GBufferEnum gBuffer;
 
-    Config(SceneEnum _scene, int _sampleCount, MaterialEnum _material, SampleWayEnum _sampleWay, float _roughness,
-           int _threadCount, AccelStructureEnum _accelStructure, FilterTypeEnum _filterType, GBufferEnum _gBuffer):
-            scene(_scene), sampleCount(_sampleCount), material(_material), sampleWay(_sampleWay), roughness(_roughness),
+    Config(SceneEnum _scene, int _sampleCount, MaterialEnum _material, float _roughness, int _threadCount,
+           AccelStructureEnum _accelStructure, FilterTypeEnum _filterType, GBufferEnum _gBuffer):
+            scene(_scene), sampleCount(_sampleCount), material(_material), roughness(_roughness),
             threadCount(_threadCount), accelStructure(_accelStructure), filterType(_filterType), gBuffer(_gBuffer) {}
 }Config;
 
