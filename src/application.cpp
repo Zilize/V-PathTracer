@@ -75,7 +75,7 @@ Application::Application() : nanogui::Screen(nanogui::Vector2i(SCREEN_WIDTH + FO
 
     auto vMaterial = form->addVariable("Material", config->material, true);
     vMaterial->setFixedWidth(VALUE_WIDTH);
-    vMaterial->setItems({"Diffuse", "Microfacet"});
+    vMaterial->setItems({"Diffuse", "Mirror", "Microfacet"});
     vMaterial->setTooltip("If set to Diffuse, the Roughness will be ignored; if set to Microfacet, the Sample Way will be ignored.");
 
     auto vSampleWay = form->addVariable("Sample Way", config->sampleWay, true);

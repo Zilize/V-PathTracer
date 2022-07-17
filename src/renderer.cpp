@@ -18,8 +18,8 @@ void Renderer::init(Config *_config) {
         framebuffer.emplace_back(vec3(0, 0, 0));
 
     // Load scene
-    if (config->scene == BOX) scene->loadSceneBox();
-    else scene->loadSceneBunny();
+    if (config->scene == BOX) scene->loadSceneBox(config);
+    else scene->loadSceneBunny(config);
 
     // Set camera
     camera = new Camera(vec3(278, 273, -790), vec3(278, 273, 0), vec3(0, 1, 0), 38, 1);

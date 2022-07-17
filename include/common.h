@@ -53,6 +53,7 @@ enum SceneEnum {
 
 enum MaterialEnum {
     DIFFUSE = 0,
+    MIRROR,
     MICROFACET
 };
 

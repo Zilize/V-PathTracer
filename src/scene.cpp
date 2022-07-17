@@ -1,18 +1,24 @@
 #include "scene.h"
 
-void Scene::loadSceneBox() {
+void Scene::loadSceneBox(Config *config) {
     auto redDiffuseMaterial = make_shared<DiffuseMaterial>(vec3(0.63, 0.065, 0.05));
     auto greenDiffuseMaterial = make_shared<DiffuseMaterial>(vec3(0.14, 0.45, 0.091));
     auto whiteDiffuseMaterial = make_shared<DiffuseMaterial>(vec3(0.725, 0.71, 0.68));
     auto lightMaterial = make_shared<DiffuseLightMaterial>(vec3(23.918, 19.283, 15.541));
 
-//    auto whiteMirrorMaterial = make_shared<MirrorMaterial>(vec3(0.725, 0.71, 0.68));
+    shared_ptr<Material> tallBoxMaterial;
+    switch (config->material) {
+        case DIFFUSE: tallBoxMaterial = whiteDiffuseMaterial; break;
+        case MIRROR: tallBoxMaterial = make_shared<MirrorMaterial>(vec3(0.725, 0.71, 0.68)); break;
+        case MICROFACET: tallBoxMaterial = make_shared<MicrofacetMaterial>(vec3(0.725, 0.71, 0.68), config->roughness); break;
+        default: throw std::runtime_error("Material not supported.");
+    }
 
     auto floor = new Object("../models/cornellbox/floor.obj", whiteDiffuseMaterial);
     auto left = new Object("../models/cornellbox/left.obj", redDiffuseMaterial);
     auto right = new Object("../models/cornellbox/right.obj", greenDiffuseMaterial);
     auto shortBox = new Object("../models/cornellbox/shortbox.obj", whiteDiffuseMaterial);
-    auto tallBox = new Object("../models/cornellbox/tallbox.obj", whiteDiffuseMaterial);
+    auto tallBox = new Object("../models/cornellbox/tallbox.obj", tallBoxMaterial);
     auto light = new Object("../models/cornellbox/light.obj", lightMaterial);
 
     objects.emplace_back(floor);
@@ -31,17 +37,25 @@ void Scene::loadSceneBox() {
     }
 }
 
-void Scene::loadSceneBunny() {
+void Scene::loadSceneBunny(Config *config) {
     auto redDiffuseMaterial = make_shared<DiffuseMaterial>(vec3(0.63, 0.065, 0.05));
     auto greenDiffuseMaterial = make_shared<DiffuseMaterial>(vec3(0.14, 0.45, 0.091));
     auto whiteDiffuseMaterial = make_shared<DiffuseMaterial>(vec3(0.725, 0.71, 0.68));
     auto lightMaterial = make_shared<DiffuseLightMaterial>(vec3(23.918, 19.283, 15.541));
 
+    shared_ptr<Material> bunnyMaterial;
+    switch (config->material) {
+        case DIFFUSE: bunnyMaterial = whiteDiffuseMaterial; break;
+        case MIRROR: bunnyMaterial = make_shared<MirrorMaterial>(vec3(0.725, 0.71, 0.68)); break;
+        case MICROFACET: bunnyMaterial = make_shared<MicrofacetMaterial>(vec3(0.725, 0.71, 0.68), config->roughness); break;
+        default: throw std::runtime_error("Material not supported.");
+    }
+
     auto floor = new Object("../models/cornellbox/floor.obj", whiteDiffuseMaterial);
     auto left = new Object("../models/cornellbox/left.obj", redDiffuseMaterial);
     auto right = new Object("../models/cornellbox/right.obj", greenDiffuseMaterial);
     auto light = new Object("../models/cornellbox/light.obj", lightMaterial);
-    auto bunny = new Object("../models/bunny/bunny.obj", whiteDiffuseMaterial);
+    auto bunny = new Object("../models/bunny/bunny.obj", bunnyMaterial);
 
     mat4 rotate = mat4(1.0f);
     rotate = glm::rotate(rotate, glm::radians(180.0f), vec3(0.0f, 1.0f, 0.0f));
@@ -141,9 +155,7 @@ void Scene::sampleLight(vec3 &point, vec3 &normal, vec3 &color, float &pdf) {
     }
 }
 
-vec3 Scene::shade(const HitRecord &hitRecord, const Ray &rayIn) {
-    if (hitRecord.material->hasEmission()) return hitRecord.material->getColor();
-
+vec3 Scene::shadeDiffuse(const HitRecord &hitRecord, const Ray &rayIn) {
     // Contribution from the light source
     vec3 lightPoint, lightNormal, lightColor;
     float lightPdf;
@@ -179,6 +191,38 @@ vec3 Scene::shade(const HitRecord &hitRecord, const Ray &rayIn) {
     }
 
     return lightDir + lightInDir;
+}
+
+vec3 Scene::shadeMirror(const HitRecord &hitRecord, const Ray &rayIn) {
+    // Contribution from other reflectors
+    vec3 lightInDir = {0, 0, 0};
+    if (glm::linearRand(0.0f, 1.0f) < RUSSIAN_ROULETTE) {
+        vec3 rayOutDir;
+        float pdf;
+        hitRecord.material->reflect(rayIn.direction, hitRecord.normal, rayOutDir, pdf);
+
+        HitRecord reflectorHitRecord;
+        bool reflectorStatus = accelStructure->intersect(Ray(hitRecord.point, rayOutDir), reflectorHitRecord);
+        if (reflectorStatus) {
+            lightInDir += shade(reflectorHitRecord, Ray(hitRecord.point, rayOutDir)) / (float)RUSSIAN_ROULETTE;
+        }
+    }
+
+    return lightInDir;
+}
+
+vec3 Scene::shadeMicrofacet(const HitRecord &hitRecord, const Ray &rayIn) {
+
+}
+
+inline vec3 Scene::shade(const HitRecord &hitRecord, const Ray &rayIn) {
+    if (hitRecord.material->hasEmission()) return hitRecord.material->getColor();
+    switch (hitRecord.material->getType()) {
+        case DIFFUSE: return shadeDiffuse(hitRecord, rayIn);
+        case MIRROR: return shadeMirror(hitRecord, rayIn);
+        case MICROFACET: return shadeMicrofacet(hitRecord, rayIn);
+        default: throw std::runtime_error("Material not supported.");
+    }
 }
 
 vec3 Scene::castRay(const Ray &ray) {
