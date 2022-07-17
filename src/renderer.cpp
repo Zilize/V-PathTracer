@@ -5,6 +5,7 @@
 #include <stb_image_write.h>
 
 #include "renderer.h"
+#include "utils.h"
 
 void Renderer::init(Config *_config) {
     clear();
@@ -105,7 +106,49 @@ void Renderer::buildGBuffer() {
 }
 
 void Renderer::filterByGauss() {
+    int halfSize = (GAUSSIAN_FILTER_SIZE - 1) / 2;
+    vector<float> weights;
+    float weightSum = 0.0f;
+    for (int i = 0; i < halfSize; ++i) {
+        float value = gaussianFilter((float)i, GAUSSIAN_FILTER_SIGMA);
+        weights.emplace_back(value);
+        if (i == 0) weightSum += value;
+        else weightSum += 2 * value;
+    }
+    for (auto &weight: weights) weight /= weightSum;
 
+    // Horizontal Filtering
+    vector<vec3> framebufferAfterHorizontal;
+    for (int i = 0; i < SCREEN_HEIGHT; ++i) {
+        for (int j = 0; j < SCREEN_WIDTH; ++j) {
+            if (j - halfSize < 0 || j + halfSize >= SCREEN_WIDTH) {
+                framebufferAfterHorizontal.emplace_back(framebuffer[i * SCREEN_WIDTH + j]);
+                continue;
+            }
+            vec3 pixel(0, 0, 0);
+            for (int col = j - halfSize; col <= j + halfSize; ++col) {
+                int distance = (col - j) > 0 ? (col - j) : (j - col);
+                pixel += weights[distance] * framebuffer[i * SCREEN_WIDTH + col];
+            }
+            framebufferAfterHorizontal.emplace_back(pixel);
+        }
+    }
+
+    // Vertical Filtering
+    for (int i = 0; i < SCREEN_HEIGHT; ++i) {
+        for (int j = 0; j < SCREEN_WIDTH; ++j) {
+            if (i - halfSize < 0 || i + halfSize >= SCREEN_HEIGHT) {
+                framebufferAfterFilter.emplace_back(framebufferAfterHorizontal[i * SCREEN_WIDTH + j]);
+                continue;
+            }
+            vec3 pixel(0, 0, 0);
+            for (int row = i - halfSize; row <= i + halfSize; ++row) {
+                int distance = (row - i) > 0 ? (row - i) : (i - row);
+                pixel += weights[distance] * framebufferAfterHorizontal[row * SCREEN_WIDTH + j];
+            }
+            framebufferAfterFilter.emplace_back(pixel);
+        }
+    }
 }
 
 void Renderer::filterByBilateral() {

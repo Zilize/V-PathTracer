@@ -48,3 +48,11 @@ float geometricSmith(float roughness, float NoV, float NoL) {
     float gv = NoL / (NoL * (1.0f - k) + k);
     return gl * gv;
 }
+
+float gaussianFilter(float distance, float sigma) {
+    return 1.0f / (sqrtf(2.0f * (float)PI) * sigma) * powf(2.718281828f, - distance * distance / (2.0f * sigma * sigma));
+}
+
+float bilateralFilter() {
+
+}
