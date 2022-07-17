@@ -55,7 +55,7 @@ Application::Application() : nanogui::Screen(nanogui::Vector2i(SCREEN_WIDTH + FO
     using namespace nanogui;
 
     renderer = new Renderer();
-    config = new Config(BOX, 10, DIFFUSE, UNIFORM, 0.5, 8, SAH, FILTER_NONE, GBUFFER_NONE);
+    config = new Config(BOX, 10, DIFFUSE, UNIFORM, 0.2, 8, SAH, FILTER_NONE, GBUFFER_NONE);
 
     FormHelper *form = new FormHelper(this);
     ref<Window> setting = form->addWindow(Eigen::Vector2i(MARGIN, MARGIN), "Settings");
@@ -87,7 +87,7 @@ Application::Application() : nanogui::Screen(nanogui::Vector2i(SCREEN_WIDTH + FO
     vRoughness->setFixedWidth(VALUE_WIDTH);
     vRoughness->setSpinnable(true);
     vRoughness->setMinMaxValues(0.0, 1.0);
-    vRoughness->setValueIncrement(0.1);
+    vRoughness->setValueIncrement(0.01);
     vRoughness->setTooltip("Roughness value for microfacet material.");
 
     form->addGroup("Optimization Settings");

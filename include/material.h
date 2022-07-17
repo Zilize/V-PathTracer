@@ -51,6 +51,7 @@ public:
     vec3 brdf(const vec3 &rayInDir, const vec3 &rayOutDir, const vec3 &normal) const override;
 
     vec3 getColor() const override { return albedo; }
+    float getRoughness() const { return roughness; }
 
 private:
     vec3 albedo;

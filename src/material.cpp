@@ -1,22 +1,5 @@
 #include "material.h"
-
-inline vec3 randomCosineDirection() {
-    float r1 = glm::linearRand(0.0f, 1.0f);
-    float r2 = glm::linearRand(0.0f, 1.0f);
-    auto z = glm::sqrt(1 - r2);
-    auto phi = 2 * (float)PI * r1;
-    auto x = glm::cos(phi) * glm::sqrt(r2);
-    auto y = glm::sin(phi) * glm::sqrt(r2);
-    return {x, y, z};
-}
-
-void buildOrthonormalBasis(const vec3 &normal, vec3 &u, vec3 &v, vec3 &w) {
-    // u, v, w is a right-hand basis
-    w = normalize(normal);
-    vec3 a = (fabsf(w.x) > 0.9f) ? vec3(0,1,0) : vec3(1,0,0);
-    v = normalize(cross(w, a));
-    u = normalize(cross(v, w));
-}
+#include "utils.h"
 
 void DiffuseMaterial::reflect(const vec3 &rayInDir, const vec3 &normal, vec3 &rayOutDir, float &pdf) const {
     // Uniform sampling a hemisphere
@@ -44,9 +27,10 @@ vec3 MirrorMaterial::brdf(const vec3 &rayInDir, const vec3 &rayOutDir, const vec
 }
 
 void MicrofacetMaterial::reflect(const vec3 &rayInDir, const vec3 &normal, vec3 &rayOutDir, float &pdf) const {
-
+    throw std::runtime_error("Not implemented.");
 }
 
 vec3 MicrofacetMaterial::brdf(const vec3 &rayInDir, const vec3 &rayOutDir, const vec3 &normal) const {
-
+    if (dot(normal, rayOutDir) > 0.0f) return albedo / (float)PI;
+    else return {0, 0, 0};
 }
