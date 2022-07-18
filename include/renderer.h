@@ -17,7 +17,7 @@ public:
     void filterByGauss();
     void filterByBilateral();
     void filterByJoint();
-    void filterByOutlineRemoval();
+    void filterByOutlierRemoval();
 
     uint8_t *getGBufferDepth();
     uint8_t *getGBufferNormal();

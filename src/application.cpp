@@ -55,7 +55,7 @@ Application::Application() : nanogui::Screen(nanogui::Vector2i(SCREEN_WIDTH + FO
     using namespace nanogui;
 
     renderer = new Renderer();
-    config = new Config(BOX, 256, DIFFUSE, 0.2, 16, SAH, OUTLINE, GBUFFER_NONE);
+    config = new Config(BOX, 256, DIFFUSE, 0.2, 16, SAH, OUTLIER, GBUFFER_NONE);
 
     FormHelper *form = new FormHelper(this);
     ref<Window> setting = form->addWindow(Eigen::Vector2i(MARGIN, MARGIN), "Settings");
@@ -99,7 +99,7 @@ Application::Application() : nanogui::Screen(nanogui::Vector2i(SCREEN_WIDTH + FO
 
     auto vFilterType = form->addVariable("Filter Type", config->filterType, true);
     vFilterType->setFixedWidth(VALUE_WIDTH);
-    vFilterType->setItems({"None", "Gauss", "Bilateral", "Joint", "Outline"});
+    vFilterType->setItems({"None", "Gauss", "Bilateral", "Joint", "Outlier"});
 
     form->addGroup("Show GBuffer");
     auto vGBuffer = form->addVariable("GBuffer", config->gBuffer, true);

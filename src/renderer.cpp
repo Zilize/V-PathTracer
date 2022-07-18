@@ -229,7 +229,7 @@ void Renderer::filterByJoint() {
     int halfSize = (JOINT_FILTER_SIZE - 1) / 2;
     float fixNorm = JOINT_FILTER_SIZE * JOINT_FILTER_SIZE;
 
-    // Outline Removal
+    // Outlier Removal
     vector<vec3> framebufferAfterRemoval;
     for (int i = 0; i < SCREEN_HEIGHT; ++i) {
         for (int j = 0; j < SCREEN_WIDTH; ++j) {
@@ -330,8 +330,8 @@ void Renderer::filterByJoint() {
     }
 }
 
-void Renderer::filterByOutlineRemoval() {
-    int halfSize = (OUTLINE_REMOVAL_FILTER_SIZE - 1) / 2;
+void Renderer::filterByOutlierRemoval() {
+    int halfSize = (OUTLIER_REMOVAL_FILTER_SIZE - 1) / 2;
     float k = 1.0f;
     for (int i = 0; i < SCREEN_HEIGHT; ++i) {
         for (int j = 0; j < SCREEN_WIDTH; ++j) {
@@ -440,7 +440,7 @@ uint8_t *Renderer::getFramebufferAfterFilter() {
         case GAUSS: filterByGauss(); break;
         case BILATERAL: filterByBilateral(); break;
         case JOINT: filterByJoint(); break;
-        case OUTLINE: filterByOutlineRemoval(); break;
+        case OUTLIER: filterByOutlierRemoval(); break;
         default: assert(0); break;
     }
     return dumpData(framebufferAfterFilter);

@@ -35,7 +35,7 @@
 #define JOINT_FILTER_DEPTH_SIGMA 1e0
 #define JOINT_FILTER_NORMAL_SIGMA 1e-2
 #define JOINT_FILTER_COLOR_SIGMA 1e1
-#define OUTLINE_REMOVAL_FILTER_SIZE 3
+#define OUTLIER_REMOVAL_FILTER_SIZE 3
 
 #define FILTER_ONLY_LAST_ONE
 
@@ -81,7 +81,7 @@ enum FilterTypeEnum {
     GAUSS,
     BILATERAL,
     JOINT,
-    OUTLINE
+    OUTLIER
 };
 
 enum GBufferEnum {

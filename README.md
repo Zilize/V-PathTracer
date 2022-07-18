@@ -47,9 +47,9 @@ V-PathTracer 有如下特性：
 
 ![](./asset/2.png)
 
-V-PathTracer 实现了 Outline Removal 功能，在图像空间上去除与周围环境颜色差异过大的点。具体来说是在 3 * 3 九宫格范围内计算出颜色的平均值 $\mu$ 以及标准差 $\sigma$，将当前像素颜色截断到范围 $[\mu - \sigma, \mu + \sigma]$。
+V-PathTracer 实现了 Outlier Removal 功能，在图像空间上去除与周围环境颜色差异过大的点。具体来说是在 3 * 3 九宫格范围内计算出颜色的平均值 $\mu$ 以及标准差 $\sigma$，将当前像素颜色截断到范围 $[\mu - \sigma, \mu + \sigma]$。
 
-下面展示的是不同实验设置下原始图像与 Outline Removal 后的图像对比，它们共享的实验设置为 256 SPP 与 512 * 512 分辨率。其中，镜面反射材质在 256 SPP 下发生了崩坏，看起来并不是那么容易收敛。
+下面展示的是不同实验设置下原始图像与 Outlier Removal 后的图像对比，它们共享的实验设置为 256 SPP 与 512 * 512 分辨率。其中，镜面反射材质在 256 SPP 下发生了崩坏，看起来并不是那么容易收敛。
 
 Cornell Box，Diffuse 材质：
 
