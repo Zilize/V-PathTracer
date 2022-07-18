@@ -55,7 +55,7 @@ Application::Application() : nanogui::Screen(nanogui::Vector2i(SCREEN_WIDTH + FO
     using namespace nanogui;
 
     renderer = new Renderer();
-    config = new Config(BOX, 20, DIFFUSE, 0.2, 8, SAH, JOINT, GBUFFER_NONE);
+    config = new Config(BOX, 256, DIFFUSE, 0.2, 16, SAH, OUTLINE, GBUFFER_NONE);
 
     FormHelper *form = new FormHelper(this);
     ref<Window> setting = form->addWindow(Eigen::Vector2i(MARGIN, MARGIN), "Settings");
@@ -71,7 +71,7 @@ Application::Application() : nanogui::Screen(nanogui::Vector2i(SCREEN_WIDTH + FO
     vSampleCount->setFixedWidth(VALUE_WIDTH);
     vSampleCount->setSpinnable(true);
     vSampleCount->setFormat("[1-9][0-9]*");
-    vSampleCount->setMinMaxValues(1, 256);
+    vSampleCount->setMinMaxValues(1, 2048);
 
     auto vMaterial = form->addVariable("Material", config->material, true);
     vMaterial->setFixedWidth(VALUE_WIDTH);
@@ -104,7 +104,7 @@ Application::Application() : nanogui::Screen(nanogui::Vector2i(SCREEN_WIDTH + FO
     form->addGroup("Show GBuffer");
     auto vGBuffer = form->addVariable("GBuffer", config->gBuffer, true);
     vGBuffer->setFixedWidth(VALUE_WIDTH);
-    vGBuffer->setItems({"None", "Depth", "Normal", "Color"});
+    vGBuffer->setItems({"None", "Depth", "Normal", "Color", "Position"});
     vGBuffer->setTooltip("If set show GBuffer, the renderer will not perform Monte Carlo rendering.");
 
     start = form->addButton("Start", [this]() {
@@ -159,6 +159,7 @@ void Application::run() {
                 case DEPTH: data = this->renderer->getGBufferDepth(); break;
                 case NORMAL: data = this->renderer->getGBufferNormal(); break;
                 case COLOR: data = this->renderer->getGBufferColor(); break;
+                case POSITION: data = this->renderer->getGBufferPosition(); break;
                 default: throw std::runtime_error("GBuffer type error.");
             }
             this->imageDataMutex.lock();

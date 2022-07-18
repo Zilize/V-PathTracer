@@ -44,6 +44,7 @@ void Renderer::clear() {
     gBufferDepth.clear();
     gBufferNormal.clear();
     gBufferColor.clear();
+    gBufferPosition.clear();
     sampleFramebufferPool.clear();
     framebuffer.clear();
     framebufferAfterFilter.clear();
@@ -391,6 +392,34 @@ uint8_t *Renderer::getGBufferNormal() {
 
 uint8_t *Renderer::getGBufferColor() {
     return dumpData(gBufferColor);
+}
+
+uint8_t *Renderer::getGBufferPosition() {
+    float minX = std::numeric_limits<float>::max();
+    float minY = std::numeric_limits<float>::max();
+    float minZ = std::numeric_limits<float>::max();
+    float maxX = std::numeric_limits<float>::min();
+    float maxY = std::numeric_limits<float>::min();
+    float maxZ = std::numeric_limits<float>::min();
+    for (auto &position: gBufferPosition) {
+        if (position.x < minX) minX = position.x;
+        if (position.y < minY) minY = position.y;
+        if (position.z < minZ) minZ = position.z;
+        if (position.x > maxX) maxX = position.x;
+        if (position.y > maxY) maxY = position.y;
+        if (position.z > maxZ) maxZ = position.z;
+    }
+    float rangeX = maxX - minX;
+    float rangeY = maxY - minY;
+    float rangeZ = maxZ - minZ;
+    vector<vec3> gBufferPositionVisual;
+    for (auto &position: gBufferPosition) {
+        float xValue = (position.x - minX) / rangeX;
+        float yValue = (position.y - minY) / rangeY;
+        float zValue = (position.z - minZ) / rangeZ;
+        gBufferPositionVisual.emplace_back(vec3(xValue, yValue, zValue));
+    }
+    return dumpData(gBufferPositionVisual);
 }
 
 uint8_t *Renderer::getFramebuffer() {

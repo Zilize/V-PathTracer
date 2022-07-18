@@ -88,7 +88,8 @@ enum GBufferEnum {
     GBUFFER_NONE = 0,
     DEPTH,
     NORMAL,
-    COLOR
+    COLOR,
+    POSITION
 };
 
 typedef struct Config {

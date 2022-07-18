@@ -22,6 +22,7 @@ public:
     uint8_t *getGBufferDepth();
     uint8_t *getGBufferNormal();
     uint8_t *getGBufferColor();
+    uint8_t *getGBufferPosition();
     uint8_t *getFramebuffer();
     uint8_t *getFramebufferAfterFilter();
 
