@@ -1,7 +1,5 @@
 # V-PathTracer：可视化路径追踪渲染器
 
----
-
 <div>
   <a href="https://github.com/zilize/V-PathTracer">
     <img alt="Release Version" src="https://img.shields.io/badge/release-v1.0.0-blue" />
