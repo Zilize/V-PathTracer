@@ -378,6 +378,8 @@ uint8_t *Renderer::getGBufferDepth() {
         float grayValue = (depth - minDepth) / range;
         gBufferDepthVisual.emplace_back(vec3(grayValue, grayValue, grayValue));
     }
+
+    dumpFile(gBufferDepthVisual, "../cache/gBufferDepth.png");
     return dumpData(gBufferDepthVisual);
 }
 
@@ -387,10 +389,14 @@ uint8_t *Renderer::getGBufferNormal() {
     for (auto normal: gBufferNormal) {
         gBufferNormalVisual.emplace_back((float)0.5 * (normal + oneVec));
     }
+
+    dumpFile(gBufferNormalVisual, "../cache/gBufferNormal.png");
     return dumpData(gBufferNormalVisual);
 }
 
 uint8_t *Renderer::getGBufferColor() {
+
+    dumpFile(gBufferColor, "../cache/gBufferColor.png");
     return dumpData(gBufferColor);
 }
 
@@ -419,6 +425,8 @@ uint8_t *Renderer::getGBufferPosition() {
         float zValue = (position.z - minZ) / rangeZ;
         gBufferPositionVisual.emplace_back(vec3(xValue, yValue, zValue));
     }
+
+    dumpFile(gBufferPositionVisual, "../cache/gBufferPosition.png");
     return dumpData(gBufferPositionVisual);
 }
 
