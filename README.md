@@ -1,5 +1,28 @@
 # V-PathTracer：可视化路径追踪渲染器
 
+---
+
+<div>
+  <a href="https://github.com/zilize/V-PathTracer">
+    <img alt="Release Version" src="https://img.shields.io/badge/release-v1.0.0-blue" />
+  </a>
+  <a href="./LICENSE">
+    <img alt="License" src="https://img.shields.io/github/license/Zilize/V-PathTracer" />
+  </a>
+  <a href="https://moecode.com">
+    <img alt="MoeCode" src="https://img.shields.io/badge/%E5%85%AC%E4%BC%97%E5%8F%B7-%E8%90%8C%E5%8F%AF%E7%A0%94%E7%A9%B6%E6%89%80-9cf">
+  </a>
+</div>
+
+![](./asset/0.png)
+
+- [概述](#概述)
+- [结果演示](#结果演示)
+- [性能提升](#性能提升)
+- [代码结构](#代码结构)
+- [项目运行](#项目运行)
+- [参考文献](#参考文献)
+
 ## 概述
 
 夏日炎炎，不如渲染个冷色调的 Cornell Box 来冰爽一夏！为了能够实时观察渲染结果的收敛过程，我花了一周多实现了一个基于图形界面的可视化路径追踪渲染器 V-PathTracer。
@@ -144,7 +167,7 @@ make
 ./vpathtracer
 ```
 
-### 参考文献
+## 参考文献
 
 [1]. [GAMES101：现代计算机图形学入门](https://sites.cs.ucsb.edu/~lingqi/teaching/games101.html)
 
